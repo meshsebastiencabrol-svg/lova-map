@@ -71,8 +71,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f4f0;height:100vh;dis
   <button class="toggle-btn ba" onclick="toggleLayer('ba',this)"><span class="dot" style="background:#16a34a"></span>LOVA Pins</button>
   <button class="toggle-btn zones" onclick="toggleLayer('zones',this)"><span class="dot" style="background:#16a34a;opacity:.5"></span>LOVA Zones</button>
   <div id="radius-wrap">
-    Radius: <input type="range" id="r-slider" min="25" max="300" value="200" step="5" oninput="updateRadius(this.value)">
-    <span id="radius-display">200 km</span>
+    Radius: <input type="range" id="r-slider" min="25" max="300" value="230" step="5" oninput="updateRadius(this.value)">
+    <span id="radius-display">230 km</span>
   </div>
 </div>
 <div id="map-wrap">
@@ -83,7 +83,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f4f0;height:100vh;dis
     <div class="leg-row"><div class="leg-pin" style="background:#dc2626"></div>The Good Guys</div>
     <div class="leg-row"><div class="leg-pin" style="background:#d97706"></div>JB Hi-Fi</div>
     <div class="leg-row"><div class="leg-pin" style="background:#16a34a"></div>LOVA support</div>
-    <div class="leg-row"><div class="leg-circle"></div><span id="leg-r-txt">200km reach zone</span></div>
+    <div class="leg-row"><div class="leg-circle"></div><span id="leg-r-txt">230km reach zone</span></div>
   </div>
   <div id="info-panel">
     <button class="close-btn" onclick="this.parentElement.style.display='none'">✕</button>
@@ -632,7 +632,7 @@ let map;
 let allMarkers={hn:[],tgg:[],jb:[],ba:[]};
 let allCircles=[];
 let layers={hn:true,tgg:true,jb:true,ba:true,zones:true};
-let radiusKm=200;
+let radiusKm=230;
 
 function initMap(){
   map=new google.maps.Map(document.getElementById('map'),{
