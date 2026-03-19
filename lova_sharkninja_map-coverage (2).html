@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lova × SharkNinja — Store Coverage Map</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f4f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#header{background:#fff;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.08);flex-wrap:wrap}
+.logo-pill{background:#0f172a;color:#fff;font-size:11px;font-weight:700;padding:4px 9px;border-radius:5px;letter-spacing:.5px}
+.sn-pill{background:#e8f0fe;color:#1a56d6;font-size:11px;font-weight:600;padding:4px 9px;border-radius:5px}
+#header h1{font-size:14px;font-weight:600;color:#111}
+#header p{font-size:11px;color:#888;margin-top:1px}
+#stats-bar{background:#fff;border-bottom:1px solid #e8e8e8;display:flex;flex-shrink:0}
+.stat{flex:1;padding:8px 12px;border-right:1px solid #e8e8e8;text-align:center}
+.stat:last-child{border-right:none}
+.stat-val{font-size:18px;font-weight:600}
+.stat-lbl{font-size:10px;color:#888;margin-top:1px}
+.s-hn .stat-val{color:#1a56d6}.s-tgg .stat-val{color:#dc2626}.s-jb .stat-val{color:#d97706}.s-ba .stat-val{color:#16a34a}
+#controls{background:#fff;border-bottom:1px solid #e8e8e8;padding:8px 12px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.ctrl-label{font-size:11px;color:#888;margin-right:2px}
+.toggle-btn{font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid;cursor:pointer;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:4px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.toggle-btn.hn{border-color:#1a56d6;background:#1a56d6;color:#fff}.toggle-btn.hn.off{color:#1a56d6;background:#fff}
+.toggle-btn.tgg{border-color:#dc2626;background:#dc2626;color:#fff}.toggle-btn.tgg.off{color:#dc2626;background:#fff}
+.toggle-btn.jb{border-color:#d97706;background:#d97706;color:#fff}.toggle-btn.jb.off{color:#d97706;background:#fff}
+.toggle-btn.ba{border-color:#16a34a;background:#16a34a;color:#fff}.toggle-btn.ba.off{color:#16a34a;background:#fff}
+.toggle-btn.zones{border-color:#16a34a;background:#dcfce7;color:#166534}.toggle-btn.zones.off{background:#fff;color:#888;border-color:#ccc}
+#map-wrap{position:relative;flex:1;display:flex;flex-direction:column}
+#map{flex:1;width:100%}
+#legend{position:absolute;bottom:30px;left:10px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 10px rgba(0,0,0,0.15);font-size:12px;z-index:5}
+#legend h4{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;color:#333;font-size:12px}
+.leg-row:last-child{margin-bottom:0}
+.leg-pin{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);flex-shrink:0}
+.leg-circle{width:16px;height:10px;border-radius:50%;border:2px dashed #16a34a;background:rgba(22,163,74,.1);flex-shrink:0}
+#info-panel{position:absolute;top:10px;right:10px;background:#fff;border-radius:10px;padding:14px 16px;box-shadow:0 2px 12px rgba(0,0,0,.18);font-size:13px;z-index:5;min-width:210px;max-width:250px;display:none}
+.ip-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.ip-title{font-weight:700;font-size:16px;margin-bottom:8px;color:#111;line-height:1.3}
+.close-btn{position:absolute;top:8px;right:10px;background:none;border:none;cursor:pointer;font-size:15px;color:#aaa}
+#radius-wrap{display:flex;align-items:center;gap:7px;margin-left:auto;font-size:11px;color:#555}
+#radius-wrap input{width:80px}
+#radius-display{font-weight:600;color:#16a34a;min-width:45px}
+</style>
+</head>
+<body>
+<div id="header">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="logo-pill">LOVA</span>
+    <span style="color:#ccc;font-size:14px">×</span>
+    <span class="sn-pill">SharkNinja</span>
+    <div>
+      <h1>Store Coverage Map — Australia</h1>
+      <p>LOVA support reach zones across all retail partners</p>
+    </div>
+  </div>
+  <button onclick="showGeocoder()" style="margin-left:auto;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #d1d5db;background:#f8fafc;color:#555;cursor:pointer;white-space:nowrap">⚙️ Update Stores</button>
+</div>
+<div id="stats-bar">
+  <div class="stat s-hn"><div class="stat-val">180</div><div class="stat-lbl">Harvey Norman</div></div>
+  <div class="stat s-tgg"><div class="stat-val">126</div><div class="stat-lbl">The Good Guys</div></div>
+  <div class="stat s-jb"><div class="stat-val">200</div><div class="stat-lbl">JB Hi-Fi</div></div>
+  <div class="stat s-ba"><div class="stat-val">15</div><div class="stat-lbl">LOVA support</div></div>
+</div>
+<div id="controls">
+  <span class="ctrl-label">Show:</span>
+  <button class="toggle-btn hn" onclick="toggleLayer('hn',this)"><span class="dot" style="background:#1a56d6"></span>Harvey Norman</button>
+  <button class="toggle-btn tgg" onclick="toggleLayer('tgg',this)"><span class="dot" style="background:#dc2626"></span>The Good Guys</button>
+  <button class="toggle-btn jb" onclick="toggleLayer('jb',this)"><span class="dot" style="background:#d97706"></span>JB Hi-Fi</button>
+  <button class="toggle-btn ba" onclick="toggleLayer('ba',this)"><span class="dot" style="background:#16a34a"></span>LOVA Pins</button>
+  <button class="toggle-btn zones" onclick="toggleLayer('zones',this)"><span class="dot" style="background:#16a34a;opacity:.5"></span>LOVA Zones</button>
+  <div id="radius-wrap">
+    Radius: <input type="range" id="r-slider" min="25" max="300" value="230" step="5" oninput="updateRadius(this.value)">
+    <span id="radius-display">230 km</span>
+  </div>
+</div>
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="legend">
+    <h4>Legend</h4>
+    <div class="leg-row"><div class="leg-pin" style="background:#1a56d6"></div>Harvey Norman</div>
+    <div class="leg-row"><div class="leg-pin" style="background:#dc2626"></div>The Good Guys</div>
+    <div class="leg-row"><div class="leg-pin" style="background:#d97706"></div>JB Hi-Fi</div>
+    <div class="leg-row"><div class="leg-pin" style="background:#16a34a"></div>LOVA support</div>
+    <div class="leg-row"><div class="leg-circle"></div><span id="leg-r-txt">230km reach zone</span></div>
+  </div>
+  <div id="info-panel">
+    <button class="close-btn" onclick="this.parentElement.style.display='none'">✕</button>
+    <div class="ip-type" id="ip-type"></div>
+    <div class="ip-title" id="ip-title"></div>
+    <div id="ip-details"></div>
+  </div>
+</div>
+<script>
+const STORES_HN = [
+  {n:"Harvey Norman Auburn",lat:-33.84349,lng:151.04115},
+  {n:"Harvey Norman Artarmon",lat:-33.79233,lng:151.13266},
+  {n:"Harvey Norman Casula",lat:-33.90635,lng:150.91928},
+  {n:"Harvey Norman Campbelltown",lat:-34.05776,lng:150.81821},
+  {n:"Harvey Norman Alexandria",lat:-33.9179,lng:151.1944},
+  {n:"Harvey Norman Bankstown",lat:-33.91779,lng:151.02637},
+  {n:"Harvey Norman Penrith",lat:-33.77148,lng:150.67046},
+  {n:"Harvey Norman Rockdale",lat:-33.95291,lng:151.13756},
+  {n:"Harvey Norman Moore Park",lat:-33.90307,lng:151.21503},
+  {n:"Harvey Norman Rhodes",lat:-33.79233,lng:151.13266},
+  {n:"Harvey Norman Belrose",lat:-33.70359,lng:151.21308},
+  {n:"Harvey Norman Wetherill Park",lat:-33.90635,lng:150.91928},
+  {n:"Harvey Norman Tuggerah",lat:-33.23787,lng:151.50147},
+  {n:"Harvey Norman Lake Haven",lat:-33.23787,lng:151.50147},
+  {n:"Harvey Norman Blacktown",lat:-33.78135,lng:150.91918},
+  {n:"Harvey Norman Rouse Hill",lat:-33.72641,lng:150.97601},
+  {n:"Harvey Norman Marsden Park",lat:-33.62819,lng:150.83835},
+  {n:"Harvey Norman Narellan",lat:-34.05776,lng:150.81821},
+  {n:"Harvey Norman Liverpool",lat:-33.90635,lng:150.91928},
+  {n:"Harvey Norman Chullora",lat:-33.84349,lng:151.04115},
+  {n:"Harvey Norman Sylvania",lat:-34.008,lng:151.10569},
+  {n:"Harvey Norman Wiley Park",lat:-33.93027,lng:151.06681},
+  {n:"Harvey Norman Manly",lat:-33.78931,lng:151.26607},
+  {n:"Harvey Norman Waitara",lat:-33.70309,lng:151.10191},
+  {n:"Harvey Norman Broadmeadow",lat:-32.92472,lng:151.73417},
+  {n:"Harvey Norman Kotara",lat:-32.93796,lng:151.70894},
+  {n:"Harvey Norman Jesmond",lat:-32.92472,lng:151.73417},
+  {n:"Harvey Norman Rutherford",lat:-32.71018,lng:151.50934},
+  {n:"Harvey Norman Coffs Harbour",lat:-30.28103,lng:153.12759},
+  {n:"Harvey Norman Lismore",lat:-28.80597,lng:153.2796},
+  {n:"Harvey Norman Tweed Heads",lat:-28.20531,lng:153.53703},
+  {n:"Harvey Norman Tamworth",lat:-31.12897,lng:150.9201},
+  {n:"Harvey Norman Orange",lat:-33.29937,lng:149.11913},
+  {n:"Harvey Norman Dubbo",lat:-32.25705,lng:148.62264},
+  {n:"Harvey Norman Wollongong",lat:-34.49698,lng:150.88992},
+  {n:"Harvey Norman Shellharbour",lat:-34.49698,lng:150.88992},
+  {n:"Harvey Norman Wagga Wagga",lat:-35.11967,lng:147.3792},
+  {n:"Harvey Norman Albury",lat:-36.07697,lng:146.92374},
+  {n:"Harvey Norman Port Macquarie",lat:-31.42665,lng:152.87656},
+  {n:"Harvey Norman Maitland",lat:-32.71018,lng:151.50934},
+  {n:"Harvey Norman Erina",lat:-33.43679,lng:151.3864},
+  {n:"Harvey Norman Nowra",lat:-34.91376,lng:150.60115},
+  {n:"Harvey Norman Bathurst",lat:-33.4211,lng:149.6248},
+  {n:"Harvey Norman Taree",lat:-31.90054,lng:152.45734},
+  {n:"Harvey Norman Cessnock",lat:-32.71018,lng:151.50934},
+  {n:"Harvey Norman Goulburn",lat:-34.75466,lng:149.71785},
+  {n:"Harvey Norman Griffith",lat:-34.29821,lng:146.04766},
+  {n:"Harvey Norman Armidale",lat:-30.50389,lng:151.65097},
+  {n:"Harvey Norman Broken Hill",lat:-31.96276,lng:141.449},
+  {n:"Harvey Norman Batemans Bay",lat:-35.70917,lng:150.17816},
+  {n:"Harvey Norman Mudgee",lat:-32.61166,lng:149.60476},
+  {n:"Harvey Norman Kempsey",lat:-31.08048,lng:152.8418},
+  {n:"Harvey Norman Raymond Terrace",lat:-32.75734,lng:151.74817},
+  {n:"Harvey Norman Inverell",lat:-29.77451,lng:151.1141},
+  {n:"Harvey Norman Forster",lat:-32.19981,lng:152.52381},
+  {n:"Harvey Norman Parkes",lat:-33.15518,lng:148.16436},
+  {n:"Harvey Norman Moree",lat:-29.46263,lng:149.84128},
+  {n:"Harvey Norman Ballina",lat:-28.84518,lng:153.55895},
+  {n:"Harvey Norman Grafton",lat:-29.68762,lng:152.93496},
+  {n:"Harvey Norman Fyshwick",lat:-35.32604,lng:149.16597},
+  {n:"Harvey Norman Belconnen",lat:-35.2398,lng:149.06703},
+  {n:"Harvey Norman Tuggeranong",lat:-35.41796,lng:149.06943},
+  {n:"Harvey Norman Springvale",lat:-37.92792,lng:145.14302},
+  {n:"Harvey Norman Hoppers Crossing",lat:-37.87491,lng:144.711},
+  {n:"Harvey Norman Nunawading",lat:-37.82391,lng:145.18064},
+  {n:"Harvey Norman Thomastown",lat:-37.68771,lng:145.02712},
+  {n:"Harvey Norman Moorabbin",lat:-37.93488,lng:145.04229},
+  {n:"Harvey Norman Cranbourne",lat:-38.14703,lng:145.13755},
+  {n:"Harvey Norman Epping",lat:-37.65466,lng:145.02338},
+  {n:"Harvey Norman Watergardens",lat:-37.69541,lng:144.77686},
+  {n:"Harvey Norman Sunshine",lat:-37.77568,lng:144.82809},
+  {n:"Harvey Norman Mentone",lat:-37.93488,lng:145.04229},
+  {n:"Harvey Norman Hawthorn",lat:-37.81913,lng:145.00585},
+  {n:"Harvey Norman Melton",lat:-37.6871,lng:144.60414},
+  {n:"Harvey Norman Fountain Gate",lat:-38.02192,lng:145.30513},
+  {n:"Harvey Norman Knox",lat:-37.87147,lng:145.24802},
+  {n:"Harvey Norman Frankston",lat:-38.14703,lng:145.13755},
+  {n:"Harvey Norman Dandenong",lat:-38.14703,lng:145.13755},
+  {n:"Harvey Norman Pakenham",lat:-38.02192,lng:145.30513},
+  {n:"Harvey Norman Craigieburn",lat:-37.67703,lng:144.92019},
+  {n:"Harvey Norman Narre Warren",lat:-38.02192,lng:145.30513},
+  {n:"Harvey Norman Chirnside Park",lat:-37.76685,lng:145.30322},
+  {n:"Harvey Norman Maribyrnong",lat:-37.77238,lng:144.88453},
+  {n:"Harvey Norman South Melbourne",lat:-37.83434,lng:144.9559},
+  {n:"Harvey Norman Richmond",lat:-37.81913,lng:145.00585},
+  {n:"Harvey Norman Bundoora",lat:-37.68771,lng:145.02712},
+  {n:"Harvey Norman Geelong",lat:-38.06794,lng:144.37913},
+  {n:"Harvey Norman North Geelong",lat:-38.06794,lng:144.37913},
+  {n:"Harvey Norman Ballarat",lat:-37.53875,lng:143.82291},
+  {n:"Harvey Norman Bendigo",lat:-36.81797,lng:144.23742},
+  {n:"Harvey Norman Wodonga",lat:-36.07484,lng:146.94523},
+  {n:"Harvey Norman Shepparton",lat:-36.40661,lng:145.39208},
+  {n:"Harvey Norman Traralgon",lat:-38.19284,lng:146.5531},
+  {n:"Harvey Norman Mildura",lat:-34.21405,lng:142.14668},
+  {n:"Harvey Norman Warrnambool",lat:-38.38329,lng:142.52441},
+  {n:"Harvey Norman Wangaratta",lat:-36.35661,lng:146.32502},
+  {n:"Harvey Norman Sale",lat:-38.10572,lng:147.06524},
+  {n:"Harvey Norman Horsham",lat:-36.71821,lng:142.19883},
+  {n:"Harvey Norman Hamilton",lat:-37.74345,lng:142.02451},
+  {n:"Harvey Norman Swan Hill",lat:-35.33209,lng:143.55452},
+  {n:"Harvey Norman Morwell",lat:-38.23828,lng:146.39915},
+  {n:"Harvey Norman Bairnsdale",lat:-37.82668,lng:147.62577},
+  {n:"Harvey Norman Echuca",lat:-36.1409,lng:144.75709},
+  {n:"Harvey Norman Fortitude Valley",lat:-27.45188,lng:153.04019},
+  {n:"Harvey Norman Everton Park",lat:-27.40958,lng:152.99198},
+  {n:"Harvey Norman Capalaba",lat:-27.52342,lng:153.19529},
+  {n:"Harvey Norman Oxley",lat:-27.56621,lng:152.98522},
+  {n:"Harvey Norman Browns Plains",lat:-27.66557,lng:153.04498},
+  {n:"Harvey Norman North Lakes",lat:-27.21903,lng:153.06569},
+  {n:"Harvey Norman Morayfield",lat:-27.1093,lng:152.9502},
+  {n:"Harvey Norman Ipswich",lat:-27.61119,lng:152.79725},
+  {n:"Harvey Norman Helensvale",lat:-27.91599,lng:153.33455},
+  {n:"Harvey Norman Chermside",lat:-27.35925,lng:153.01791},
+  {n:"Harvey Norman Strathpine",lat:-27.35925,lng:153.01791},
+  {n:"Harvey Norman Carindale",lat:-27.50149,lng:153.10486},
+  {n:"Harvey Norman Booval",lat:-27.61119,lng:152.79725},
+  {n:"Harvey Norman Newstead",lat:-27.45188,lng:153.04019},
+  {n:"Harvey Norman Springwood",lat:-27.6641,lng:153.17448},
+  {n:"Harvey Norman Jindalee",lat:-27.56621,lng:152.98522},
+  {n:"Harvey Norman Aspley",lat:-27.35925,lng:153.01791},
+  {n:"Harvey Norman Bundall",lat:-28.00912,lng:153.40498},
+  {n:"Harvey Norman Kawana",lat:-23.34036,lng:150.50858},
+  {n:"Harvey Norman Maroochydore",lat:-26.66042,lng:153.08393},
+  {n:"Harvey Norman Noosaville",lat:-26.40212,lng:153.06604},
+  {n:"Harvey Norman Toowoomba",lat:-27.59681,lng:151.94806},
+  {n:"Harvey Norman Townsville",lat:-19.27772,lng:146.75662},
+  {n:"Harvey Norman Cairns",lat:-16.92911,lng:145.77196},
+  {n:"Harvey Norman Rockhampton",lat:-23.34374,lng:150.52208},
+  {n:"Harvey Norman Mackay",lat:-21.12872,lng:149.1618},
+  {n:"Harvey Norman Bundaberg",lat:-24.89048,lng:152.31749},
+  {n:"Harvey Norman Hervey Bay",lat:-25.28735,lng:152.81475},
+  {n:"Harvey Norman Gladstone",lat:-23.87747,lng:151.22669},
+  {n:"Harvey Norman Mount Isa",lat:-20.72558,lng:139.51205},
+  {n:"Harvey Norman Airlie Beach",lat:-20.29099,lng:148.67368},
+  {n:"Harvey Norman Warwick",lat:-28.2103,lng:152.03401},
+  {n:"Harvey Norman Dalby",lat:-27.18094,lng:151.26594},
+  {n:"Harvey Norman Gympie",lat:-26.22036,lng:152.68885},
+  {n:"Harvey Norman Maryborough",lat:-25.54241,lng:152.6993},
+  {n:"Harvey Norman Emerald",lat:-23.56669,lng:148.16865},
+  {n:"Harvey Norman Cannington",lat:-32.01969,lng:115.93516},
+  {n:"Harvey Norman Joondalup",lat:-31.76212,lng:115.77182},
+  {n:"Harvey Norman Osborne Park",lat:-31.90412,lng:115.80567},
+  {n:"Harvey Norman Claremont",lat:-31.98074,lng:115.78218},
+  {n:"Harvey Norman Mandurah",lat:-32.51139,lng:115.73916},
+  {n:"Harvey Norman Rockingham",lat:-32.37275,lng:115.75642},
+  {n:"Harvey Norman Midland",lat:-31.89629,lng:116.01303},
+  {n:"Harvey Norman Bunbury",lat:-33.33971,lng:115.65108},
+  {n:"Harvey Norman Albany",lat:-34.9875,lng:117.87696},
+  {n:"Harvey Norman Kalgoorlie",lat:-30.76257,lng:121.48213},
+  {n:"Harvey Norman Geraldton",lat:-28.77263,lng:114.61347},
+  {n:"Harvey Norman Karratha",lat:-20.73568,lng:116.84187},
+  {n:"Harvey Norman Port Hedland",lat:-20.31158,lng:118.60843},
+  {n:"Harvey Norman Broome",lat:-17.96498,lng:122.22283},
+  {n:"Harvey Norman Busselton",lat:-33.65383,lng:115.33903},
+  {n:"Harvey Norman Wangara",lat:-31.78977,lng:115.82829},
+  {n:"Harvey Norman Cockburn",lat:-32.11064,lng:115.82852},
+  {n:"Harvey Norman Armadale",lat:-32.15112,lng:116.01977},
+  {n:"Harvey Norman Balcatta",lat:-31.85744,lng:115.80981},
+  {n:"Harvey Norman Karrinyup",lat:-31.90568,lng:115.80662},
+  {n:"Harvey Norman Marion",lat:-35.01181,lng:138.55734},
+  {n:"Harvey Norman Gepps Cross",lat:-34.83631,lng:138.60493},
+  {n:"Harvey Norman Munno Para",lat:-34.69188,lng:138.68574},
+  {n:"Harvey Norman Noarlunga",lat:-35.14261,lng:138.49006},
+  {n:"Harvey Norman Whyalla",lat:-33.03561,lng:137.58775},
+  {n:"Harvey Norman Mount Gambier",lat:-37.83376,lng:140.80157},
+  {n:"Harvey Norman Port Augusta",lat:-32.49357,lng:137.77435},
+  {n:"Harvey Norman Murray Bridge",lat:-35.13191,lng:139.25502},
+  {n:"Harvey Norman Mile End",lat:-34.93411,lng:138.57086},
+  {n:"Harvey Norman Mount Barker",lat:-35.06794,lng:138.86584},
+  {n:"Harvey Norman Port Pirie",lat:-33.17855,lng:138.01043},
+  {n:"Harvey Norman Hobart",lat:-42.87984,lng:147.32151},
+  {n:"Harvey Norman Launceston",lat:-41.43476,lng:147.13503},
+  {n:"Harvey Norman Devonport",lat:-41.1928,lng:146.33645},
+  {n:"Harvey Norman Burnie",lat:-41.05882,lng:145.90869},
+  {n:"Harvey Norman Glenorchy",lat:-42.84039,lng:147.29095},
+  {n:"Harvey Norman Darwin",lat:-12.43272,lng:130.91845},
+  {n:"Harvey Norman Alice Springs",lat:-23.6957,lng:133.87743},
+  {n:"Harvey Norman Palmerston",lat:-12.43272,lng:130.91845},
+];
+
+const STORES_TGG = [
+  {n:"The Good Guys Artarmon",lat:-33.81707,lng:151.18828},
+  {n:"The Good Guys Penrith",lat:-33.76602,lng:150.6805},
+  {n:"The Good Guys Campbelltown",lat:-34.05906,lng:150.81581},
+  {n:"The Good Guys Rockdale",lat:-33.94759,lng:151.13995},
+  {n:"The Good Guys Auburn",lat:-33.83772,lng:151.02808},
+  {n:"The Good Guys Casula",lat:-33.95996,lng:150.88314},
+  {n:"The Good Guys Wetherill Park",lat:-33.85044,lng:150.897},
+  {n:"The Good Guys Bankstown",lat:-33.93226,lng:151.02885},
+  {n:"The Good Guys Belrose",lat:-33.72829,lng:151.21791},
+  {n:"The Good Guys Blacktown",lat:-33.71921,lng:150.83995},
+  {n:"The Good Guys Liverpool",lat:-33.9129,lng:150.74468},
+  {n:"The Good Guys Rouse Hill",lat:-33.72646,lng:150.97655},
+  {n:"The Good Guys Marsden Park",lat:-33.71921,lng:150.83995},
+  {n:"The Good Guys Narellan",lat:-34.04153,lng:150.73231},
+  {n:"The Good Guys Chullora",lat:-33.89861,lng:151.04316},
+  {n:"The Good Guys Coffs Harbour",lat:-30.31242,lng:153.09285},
+  {n:"The Good Guys Newcastle",lat:-32.92827,lng:151.78168},
+  {n:"The Good Guys Kotara",lat:-32.93897,lng:151.7075},
+  {n:"The Good Guys Rutherford",lat:-32.71517,lng:151.52518},
+  {n:"The Good Guys Tuggerah",lat:-33.30885,lng:151.42127},
+  {n:"The Good Guys Lake Haven",lat:-33.24283,lng:151.50192},
+  {n:"The Good Guys Wagga Wagga",lat:-35.12036,lng:147.37534},
+  {n:"The Good Guys Wollongong",lat:-34.49093,lng:150.88892},
+  {n:"The Good Guys Shellharbour",lat:-34.57945,lng:150.86652},
+  {n:"The Good Guys Maitland",lat:-32.76119,lng:151.59665},
+  {n:"The Good Guys Nowra",lat:-34.91429,lng:150.6001},
+  {n:"The Good Guys Bathurst",lat:-33.41997,lng:149.60196},
+  {n:"The Good Guys Tamworth",lat:-31.12845,lng:150.923},
+  {n:"The Good Guys Albury",lat:-36.08516,lng:146.92249},
+  {n:"The Good Guys Port Macquarie",lat:-31.44822,lng:152.88444},
+  {n:"The Good Guys Orange",lat:-33.41997,lng:149.60196},
+  {n:"The Good Guys Dubbo",lat:-32.25838,lng:148.6265},
+  {n:"The Good Guys Lismore",lat:-28.80943,lng:153.28789},
+  {n:"The Good Guys Tweed Heads",lat:-28.20649,lng:153.54544},
+  {n:"The Good Guys Warners Bay",lat:-32.96462,lng:151.65984},
+  {n:"The Good Guys Cessnock",lat:-32.83216,lng:151.35588},
+  {n:"The Good Guys Erina",lat:-33.43539,lng:151.39198},
+  {n:"The Good Guys Ballina",lat:-28.86385,lng:153.54049},
+  {n:"The Good Guys Grafton",lat:-29.68147,lng:152.93813},
+  {n:"The Good Guys Fyshwick",lat:-35.33199,lng:149.17719},
+  {n:"The Good Guys Belconnen",lat:-35.2406,lng:149.06359},
+  {n:"The Good Guys Tuggeranong",lat:-35.41709,lng:149.06418},
+  {n:"The Good Guys Moorabbin",lat:-37.97117,lng:145.09224},
+  {n:"The Good Guys Maribyrnong",lat:-37.77419,lng:144.88453},
+  {n:"The Good Guys Thomastown",lat:-37.68896,lng:145.02856},
+  {n:"The Good Guys Hawthorn",lat:-37.8226,lng:145.03537},
+  {n:"The Good Guys Cranbourne",lat:-38.08863,lng:145.28045},
+  {n:"The Good Guys Epping",lat:-37.68896,lng:145.02856},
+  {n:"The Good Guys Hoppers Crossing",lat:-37.87815,lng:144.7079},
+  {n:"The Good Guys Nunawading",lat:-37.81927,lng:145.17958},
+  {n:"The Good Guys Dandenong",lat:-37.98362,lng:145.21376},
+  {n:"The Good Guys Melton",lat:-37.68818,lng:144.65337},
+  {n:"The Good Guys Fountain Gate",lat:-38.01757,lng:145.30426},
+  {n:"The Good Guys Knox",lat:-36.98478,lng:143.39061},
+  {n:"The Good Guys Frankston",lat:-38.14815,lng:145.13878},
+  {n:"The Good Guys Springvale",lat:-37.94147,lng:145.16732},
+  {n:"The Good Guys Chadstone",lat:-37.87734,lng:145.09259},
+  {n:"The Good Guys Chirnside Park",lat:-37.76535,lng:145.30574},
+  {n:"The Good Guys Craigieburn",lat:-37.59398,lng:144.91003},
+  {n:"The Good Guys Brimbank",lat:-37.69611,lng:144.77086},
+  {n:"The Good Guys Bundoora",lat:-37.68896,lng:145.02856},
+  {n:"The Good Guys South Morang",lat:-37.68896,lng:145.02856},
+  {n:"The Good Guys Geelong",lat:-38.15993,lng:144.35523},
+  {n:"The Good Guys Ballarat",lat:-37.5602,lng:143.85993},
+  {n:"The Good Guys Bendigo",lat:-36.76259,lng:144.2855},
+  {n:"The Good Guys Wodonga",lat:-36.08516,lng:146.92249},
+  {n:"The Good Guys Shepparton",lat:-36.3811,lng:145.39931},
+  {n:"The Good Guys Traralgon",lat:-38.1936,lng:146.54798},
+  {n:"The Good Guys Warrnambool",lat:-38.38575,lng:142.53227},
+  {n:"The Good Guys Mildura",lat:-34.21781,lng:142.14826},
+  {n:"The Good Guys Pakenham",lat:-38.0598,lng:145.45507},
+  {n:"The Good Guys Wangaratta",lat:-36.36493,lng:146.31493},
+  {n:"The Good Guys Bairnsdale",lat:-37.83659,lng:147.59937},
+  {n:"The Good Guys Jindalee",lat:-27.53435,lng:152.93505},
+  {n:"The Good Guys Virginia",lat:-27.37454,lng:153.06239},
+  {n:"The Good Guys Capalaba",lat:-27.53214,lng:153.19807},
+  {n:"The Good Guys Browns Plains",lat:-27.66307,lng:153.0463},
+  {n:"The Good Guys North Lakes",lat:-27.23828,lng:153.0109},
+  {n:"The Good Guys Ipswich",lat:-27.61302,lng:152.79365},
+  {n:"The Good Guys Helensvale",lat:-27.88634,lng:153.3172},
+  {n:"The Good Guys Maroochydore",lat:-26.65695,lng:153.08588},
+  {n:"The Good Guys Chermside",lat:-27.38583,lng:153.031},
+  {n:"The Good Guys Strathpine",lat:-27.30161,lng:152.98841},
+  {n:"The Good Guys Booval",lat:-27.61302,lng:152.79365},
+  {n:"The Good Guys Mt Gravatt",lat:-27.52983,lng:153.0728},
+  {n:"The Good Guys Morayfield",lat:-27.11747,lng:152.95528},
+  {n:"The Good Guys Southport",lat:-27.97188,lng:153.40631},
+  {n:"The Good Guys Kawana",lat:-23.34165,lng:150.52168},
+  {n:"The Good Guys Springwood",lat:-27.6159,lng:153.13747},
+  {n:"The Good Guys Aspley",lat:-27.35623,lng:153.01869},
+  {n:"The Good Guys Toowoomba",lat:-27.59609,lng:151.94844},
+  {n:"The Good Guys Townsville",lat:-19.27416,lng:146.75823},
+  {n:"The Good Guys Cairns",lat:-16.93569,lng:145.75473},
+  {n:"The Good Guys Rockhampton",lat:-23.34165,lng:150.52168},
+  {n:"The Good Guys Mackay",lat:-21.12839,lng:149.16067},
+  {n:"The Good Guys Bundaberg",lat:-24.88781,lng:152.32207},
+  {n:"The Good Guys Hervey Bay",lat:-25.28803,lng:152.8415},
+  {n:"The Good Guys Gladstone",lat:-23.84159,lng:151.24977},
+  {n:"The Good Guys Warwick",lat:-28.2138,lng:152.03066},
+  {n:"The Good Guys Osborne Park",lat:-31.91199,lng:115.81551},
+  {n:"The Good Guys Victoria Park",lat:-31.97472,lng:115.89759},
+  {n:"The Good Guys Cannington",lat:-32.02411,lng:115.95408},
+  {n:"The Good Guys Joondalup",lat:-31.76139,lng:115.77137},
+  {n:"The Good Guys Rockingham",lat:-32.29184,lng:115.74228},
+  {n:"The Good Guys Midland",lat:-31.89672,lng:116.01175},
+  {n:"The Good Guys Mandurah",lat:-32.53893,lng:115.75775},
+  {n:"The Good Guys Bunbury",lat:-33.33288,lng:115.64471},
+  {n:"The Good Guys Kalgoorlie",lat:-30.749,lng:121.466},
+  {n:"The Good Guys Geraldton",lat:-28.75773,lng:114.62545},
+  {n:"The Good Guys Wangara",lat:-31.78977,lng:115.82829},
+  {n:"The Good Guys Cockburn",lat:-32.12715,lng:115.86987},
+  {n:"The Good Guys Balcatta",lat:-31.8666,lng:115.8209},
+  {n:"The Good Guys Mile End",lat:-34.9352,lng:138.5739},
+  {n:"The Good Guys Munno Para",lat:-34.66847,lng:138.6969},
+  {n:"The Good Guys Marion",lat:-35.01118,lng:138.55734},
+  {n:"The Good Guys Noarlunga",lat:-35.13909,lng:138.48959},
+  {n:"The Good Guys Gepps Cross",lat:-34.83722,lng:138.60375},
+  {n:"The Good Guys Mount Gambier",lat:-37.82844,lng:140.78068},
+  {n:"The Good Guys Whyalla",lat:-33.03458,lng:137.57564},
+  {n:"The Good Guys Mount Barker",lat:-35.0732,lng:138.85758},
+  {n:"The Good Guys Hobart",lat:-42.84454,lng:147.29354},
+  {n:"The Good Guys Launceston",lat:-41.42848,lng:147.13156},
+  {n:"The Good Guys Devonport",lat:-41.18007,lng:146.35029},
+  {n:"The Good Guys Glenorchy",lat:-42.85595,lng:147.20598},
+  {n:"The Good Guys Darwin",lat:-12.39075,lng:130.8581},
+  {n:"The Good Guys Palmerston",lat:-12.47944,lng:130.98453},
+];
+
+const STORES_JB = [
+  {n:"JB Hi-Fi Sydney City",lat:-33.83929,lng:151.20853},
+  {n:"JB Hi-Fi Bondi Junction",lat:-33.89283,lng:151.24999},
+  {n:"JB Hi-Fi Parramatta",lat:-33.81677,lng:151.00163},
+  {n:"JB Hi-Fi Chatswood",lat:-33.79726,lng:151.18404},
+  {n:"JB Hi-Fi Hornsby",lat:-33.70526,lng:151.09959},
+  {n:"JB Hi-Fi Penrith",lat:-33.77012,lng:150.67099},
+  {n:"JB Hi-Fi Blacktown",lat:-33.76992,lng:150.90458},
+  {n:"JB Hi-Fi Castle Hill",lat:-33.73054,lng:151.00675},
+  {n:"JB Hi-Fi Hurstville",lat:-33.96548,lng:151.10554},
+  {n:"JB Hi-Fi Miranda",lat:-34.02955,lng:151.12098},
+  {n:"JB Hi-Fi Liverpool",lat:-33.91975,lng:150.92379},
+  {n:"JB Hi-Fi Campbelltown",lat:-34.07337,lng:150.79695},
+  {n:"JB Hi-Fi Rouse Hill",lat:-33.69114,lng:150.9269},
+  {n:"JB Hi-Fi Broadway",lat:-33.88413,lng:151.19467},
+  {n:"JB Hi-Fi Macquarie Centre",lat:-33.77672,lng:151.12052},
+  {n:"JB Hi-Fi Rhodes",lat:-33.82882,lng:151.08893},
+  {n:"JB Hi-Fi Wetherill Park",lat:-33.85745,lng:150.89895},
+  {n:"JB Hi-Fi Homebush",lat:-33.85501,lng:151.07675},
+  {n:"JB Hi-Fi Chullora",lat:-33.85501,lng:151.07675},
+  {n:"JB Hi-Fi Caringbah",lat:-34.03501,lng:151.10241},
+  {n:"JB Hi-Fi Bankstown",lat:-33.91554,lng:151.03936},
+  {n:"JB Hi-Fi Seven Hills",lat:-33.76992,lng:150.90458},
+  {n:"JB Hi-Fi Pitt Street Mall",lat:-33.86945,lng:151.20765},
+  {n:"JB Hi-Fi Galeries Victoria",lat:-33.87256,lng:151.20731},
+  {n:"JB Hi-Fi Narellan",lat:-34.04102,lng:150.73525},
+  {n:"JB Hi-Fi Marsden Park",lat:-33.72362,lng:150.83324},
+  {n:"JB Hi-Fi Warriewood",lat:-33.69565,lng:151.29559},
+  {n:"JB Hi-Fi Sylvania",lat:-34.02955,lng:151.12098},
+  {n:"JB Hi-Fi Burwood",lat:-33.87457,lng:151.10592},
+  {n:"JB Hi-Fi Eastgardens",lat:-33.94425,lng:151.22334},
+  {n:"JB Hi-Fi Leichhardt",lat:-33.88509,lng:151.1574},
+  {n:"JB Hi-Fi Newtown",lat:-33.88413,lng:151.19467},
+  {n:"JB Hi-Fi Top Ryde",lat:-33.81101,lng:151.10596},
+  {n:"JB Hi-Fi Tuggerah",lat:-33.30878,lng:151.41226},
+  {n:"JB Hi-Fi Kotara",lat:-32.94279,lng:151.69691},
+  {n:"JB Hi-Fi Charlestown",lat:-32.96445,lng:151.69341},
+  {n:"JB Hi-Fi Maitland",lat:-32.76271,lng:151.59008},
+  {n:"JB Hi-Fi Wollongong",lat:-34.4239,lng:150.89235},
+  {n:"JB Hi-Fi Shellharbour",lat:-34.56429,lng:150.83776},
+  {n:"JB Hi-Fi Coffs Harbour",lat:-30.28206,lng:153.13152},
+  {n:"JB Hi-Fi Albury",lat:-36.08145,lng:146.91577},
+  {n:"JB Hi-Fi Wagga Wagga",lat:-35.11588,lng:147.37032},
+  {n:"JB Hi-Fi Tweed Heads",lat:-28.20129,lng:153.54668},
+  {n:"JB Hi-Fi Port Macquarie",lat:-31.43192,lng:152.90712},
+  {n:"JB Hi-Fi Orange",lat:-33.30086,lng:149.12011},
+  {n:"JB Hi-Fi Dubbo",lat:-32.25521,lng:148.63163},
+  {n:"JB Hi-Fi Tamworth",lat:-31.09009,lng:150.93047},
+  {n:"JB Hi-Fi Lismore",lat:-28.80943,lng:153.28789},
+  {n:"JB Hi-Fi Bathurst",lat:-33.41836,lng:149.58234},
+  {n:"JB Hi-Fi Nowra",lat:-34.91597,lng:150.6054},
+  {n:"JB Hi-Fi Gosford",lat:-33.43569,lng:151.39303},
+  {n:"JB Hi-Fi Lake Haven",lat:-33.24017,lng:151.50354},
+  {n:"JB Hi-Fi Warners Bay",lat:-32.93389,lng:151.64016},
+  {n:"JB Hi-Fi Cessnock",lat:-32.83216,lng:151.35588},
+  {n:"JB Hi-Fi Ballina",lat:-28.8628,lng:153.56582},
+  {n:"JB Hi-Fi Grafton",lat:-29.68147,lng:152.93813},
+  {n:"JB Hi-Fi Goulburn",lat:-34.75675,lng:149.71363},
+  {n:"JB Hi-Fi Griffith",lat:-34.28866,lng:146.0324},
+  {n:"JB Hi-Fi Armidale",lat:-30.50357,lng:151.65234},
+  {n:"JB Hi-Fi Fyshwick",lat:-35.33659,lng:149.17839},
+  {n:"JB Hi-Fi Belconnen",lat:-35.23763,lng:149.06665},
+  {n:"JB Hi-Fi Woden",lat:-35.34507,lng:149.08579},
+  {n:"JB Hi-Fi Tuggeranong",lat:-35.41533,lng:149.06634},
+  {n:"JB Hi-Fi Canberra City",lat:-35.27742,lng:149.13295},
+  {n:"JB Hi-Fi Melbourne CBD",lat:-37.81295,lng:144.96698},
+  {n:"JB Hi-Fi Chadstone",lat:-37.87961,lng:145.09199},
+  {n:"JB Hi-Fi Southland",lat:-37.95799,lng:145.05517},
+  {n:"JB Hi-Fi Doncaster",lat:-37.78562,lng:145.12663},
+  {n:"JB Hi-Fi Greensborough",lat:-37.70302,lng:145.1014},
+  {n:"JB Hi-Fi Knox City",lat:-37.86795,lng:145.23873},
+  {n:"JB Hi-Fi Frankston",lat:-38.14085,lng:145.125},
+  {n:"JB Hi-Fi Fountain Gate",lat:-38.01737,lng:145.30464},
+  {n:"JB Hi-Fi Werribee",lat:-37.87393,lng:144.71881},
+  {n:"JB Hi-Fi Highpoint",lat:-37.77308,lng:144.88921},
+  {n:"JB Hi-Fi Northland",lat:-37.73867,lng:145.03152},
+  {n:"JB Hi-Fi Eastland",lat:-37.81376,lng:145.22791},
+  {n:"JB Hi-Fi The Glen",lat:-37.87553,lng:145.16519},
+  {n:"JB Hi-Fi Plenty Valley",lat:-37.65184,lng:145.07148},
+  {n:"JB Hi-Fi Brimbank",lat:-37.70155,lng:144.77583},
+  {n:"JB Hi-Fi Airport West",lat:-37.73403,lng:144.90554},
+  {n:"JB Hi-Fi Altona",lat:-37.8445,lng:144.84335},
+  {n:"JB Hi-Fi Camberwell",lat:-37.82889,lng:145.0564},
+  {n:"JB Hi-Fi Springvale",lat:-37.99329,lng:145.17385},
+  {n:"JB Hi-Fi Craigieburn",lat:-37.59176,lng:144.91324},
+  {n:"JB Hi-Fi Narre Warren",lat:-38.02464,lng:145.30872},
+  {n:"JB Hi-Fi Maribyrnong",lat:-37.77308,lng:144.88921},
+  {n:"JB Hi-Fi Epping",lat:-37.65184,lng:145.07148},
+  {n:"JB Hi-Fi Dandenong",lat:-37.99329,lng:145.17385},
+  {n:"JB Hi-Fi Moorabbin",lat:-37.95799,lng:145.05517},
+  {n:"JB Hi-Fi Hawthorn",lat:-37.82889,lng:145.0564},
+  {n:"JB Hi-Fi Richmond",lat:-37.81295,lng:144.96698},
+  {n:"JB Hi-Fi South Wharf",lat:-37.82493,lng:144.95023},
+  {n:"JB Hi-Fi Bourke Street",lat:-37.81295,lng:144.96698},
+  {n:"JB Hi-Fi Chirnside Park",lat:-37.76625,lng:145.30577},
+  {n:"JB Hi-Fi Bundoora",lat:-37.65184,lng:145.07148},
+  {n:"JB Hi-Fi Caroline Springs",lat:-37.75876,lng:144.74943},
+  {n:"JB Hi-Fi Ringwood",lat:-37.81376,lng:145.22791},
+  {n:"JB Hi-Fi Brighton",lat:-37.90733,lng:145.01027},
+  {n:"JB Hi-Fi Pakenham",lat:-38.05945,lng:145.45253},
+  {n:"JB Hi-Fi Cranbourne",lat:-38.10904,lng:145.28222},
+  {n:"JB Hi-Fi Hoppers Crossing",lat:-37.87621,lng:144.68195},
+  {n:"JB Hi-Fi South Morang",lat:-37.65184,lng:145.07148},
+  {n:"JB Hi-Fi Thomastown",lat:-37.68822,lng:145.02671},
+  {n:"JB Hi-Fi Geelong",lat:-38.14802,lng:144.36177},
+  {n:"JB Hi-Fi North Geelong",lat:-38.14802,lng:144.36177},
+  {n:"JB Hi-Fi Ballarat",lat:-37.56049,lng:143.86163},
+  {n:"JB Hi-Fi Bendigo",lat:-36.76114,lng:144.2791},
+  {n:"JB Hi-Fi Shepparton",lat:-36.38409,lng:145.399},
+  {n:"JB Hi-Fi Wodonga",lat:-36.08145,lng:146.91577},
+  {n:"JB Hi-Fi Traralgon",lat:-38.19748,lng:146.53695},
+  {n:"JB Hi-Fi Warrnambool",lat:-38.38463,lng:142.52704},
+  {n:"JB Hi-Fi Mildura",lat:-34.20694,lng:142.13919},
+  {n:"JB Hi-Fi Wangaratta",lat:-36.36493,lng:146.31493},
+  {n:"JB Hi-Fi Sale",lat:-36.98478,lng:143.39061},
+  {n:"JB Hi-Fi Horsham",lat:-36.71667,lng:142.19966},
+  {n:"JB Hi-Fi Hobart",lat:-42.88262,lng:147.32754},
+  {n:"JB Hi-Fi Launceston",lat:-41.43062,lng:147.1298},
+  {n:"JB Hi-Fi Devonport",lat:-41.18007,lng:146.35029},
+  {n:"JB Hi-Fi Glenorchy",lat:-42.88262,lng:147.32754},
+  {n:"JB Hi-Fi Brisbane City",lat:-27.46987,lng:153.02405},
+  {n:"JB Hi-Fi Carindale",lat:-27.50157,lng:153.10255},
+  {n:"JB Hi-Fi Mt Gravatt",lat:-27.56352,lng:153.08296},
+  {n:"JB Hi-Fi Chermside",lat:-27.39547,lng:153.03161},
+  {n:"JB Hi-Fi North Lakes",lat:-27.24227,lng:153.01668},
+  {n:"JB Hi-Fi Indooroopilly",lat:-27.49971,lng:152.97281},
+  {n:"JB Hi-Fi Garden City",lat:-22.5752,lng:144.08479},
+  {n:"JB Hi-Fi Robina",lat:-28.07806,lng:153.38672},
+  {n:"JB Hi-Fi Pacific Fair",lat:-28.03493,lng:153.42933},
+  {n:"JB Hi-Fi Helensvale",lat:-27.88824,lng:153.31753},
+  {n:"JB Hi-Fi Capalaba",lat:-27.52492,lng:153.19338},
+  {n:"JB Hi-Fi Hyperdome",lat:-27.65835,lng:153.17163},
+  {n:"JB Hi-Fi Morayfield",lat:-27.10291,lng:152.95006},
+  {n:"JB Hi-Fi Ipswich",lat:-27.60745,lng:152.75759},
+  {n:"JB Hi-Fi Strathpine",lat:-27.30785,lng:152.99118},
+  {n:"JB Hi-Fi Booval",lat:-27.60745,lng:152.75759},
+  {n:"JB Hi-Fi Browns Plains",lat:-27.64896,lng:153.09778},
+  {n:"JB Hi-Fi Virginia",lat:-27.39547,lng:153.03161},
+  {n:"JB Hi-Fi Jindalee",lat:-27.54988,lng:152.93825},
+  {n:"JB Hi-Fi Toombul",lat:-22.5752,lng:144.08479},
+  {n:"JB Hi-Fi Nundah",lat:-27.39547,lng:153.03161},
+  {n:"JB Hi-Fi Springwood",lat:-27.65835,lng:153.17163},
+  {n:"JB Hi-Fi Aspley",lat:-27.38075,lng:153.0326},
+  {n:"JB Hi-Fi Newstead",lat:-27.4484,lng:153.04393},
+  {n:"JB Hi-Fi Coorparoo",lat:-27.52974,lng:153.07271},
+  {n:"JB Hi-Fi Everton Park",lat:-27.39547,lng:153.03161},
+  {n:"JB Hi-Fi Maroochydore",lat:-26.65477,lng:153.08726},
+  {n:"JB Hi-Fi Noosa",lat:-26.36454,lng:152.96767},
+  {n:"JB Hi-Fi Kawana",lat:-26.70305,lng:153.13153},
+  {n:"JB Hi-Fi Toowoomba",lat:-27.56064,lng:151.95231},
+  {n:"JB Hi-Fi Townsville",lat:-19.27677,lng:146.75813},
+  {n:"JB Hi-Fi Garbutt",lat:-19.27677,lng:146.75813},
+  {n:"JB Hi-Fi Cairns",lat:-16.92533,lng:145.77199},
+  {n:"JB Hi-Fi Cairns Central",lat:-16.92533,lng:145.77199},
+  {n:"JB Hi-Fi Rockhampton",lat:-23.35591,lng:150.52256},
+  {n:"JB Hi-Fi Mackay",lat:-21.13835,lng:149.17757},
+  {n:"JB Hi-Fi Bundaberg",lat:-24.88727,lng:152.31823},
+  {n:"JB Hi-Fi Hervey Bay",lat:-25.29086,lng:152.83586},
+  {n:"JB Hi-Fi Gladstone",lat:-23.84159,lng:151.24977},
+  {n:"JB Hi-Fi Warwick",lat:-28.2138,lng:152.03066},
+  {n:"JB Hi-Fi Toowoomba Home",lat:-27.56064,lng:151.95231},
+  {n:"JB Hi-Fi Browns Plains Home",lat:-27.66341,lng:153.04373},
+  {n:"JB Hi-Fi Perth CBD",lat:-31.95324,lng:115.86029},
+  {n:"JB Hi-Fi Carousel",lat:-32.01892,lng:115.93622},
+  {n:"JB Hi-Fi Innaloo",lat:-31.87634,lng:115.78107},
+  {n:"JB Hi-Fi Joondalup",lat:-31.74414,lng:115.76923},
+  {n:"JB Hi-Fi Morley",lat:-31.85233,lng:115.88318},
+  {n:"JB Hi-Fi Garden City Booragoon",lat:-32.03497,lng:115.83712},
+  {n:"JB Hi-Fi Whitfords",lat:-31.79635,lng:115.75134},
+  {n:"JB Hi-Fi Mandurah",lat:-32.53602,lng:115.7433},
+  {n:"JB Hi-Fi Rockingham",lat:-32.28887,lng:115.74681},
+  {n:"JB Hi-Fi Midland",lat:-31.89673,lng:116.01099},
+  {n:"JB Hi-Fi Cockburn",lat:-32.13184,lng:115.857},
+  {n:"JB Hi-Fi Bunbury",lat:-33.33499,lng:115.64627},
+  {n:"JB Hi-Fi Albany",lat:-34.99096,lng:117.87603},
+  {n:"JB Hi-Fi Kalgoorlie",lat:-30.749,lng:121.466},
+  {n:"JB Hi-Fi Geraldton",lat:-28.77613,lng:114.6113},
+  {n:"JB Hi-Fi Karratha",lat:-20.7337,lng:116.84471},
+  {n:"JB Hi-Fi Cannington",lat:-32.01892,lng:115.93622},
+  {n:"JB Hi-Fi Armadale",lat:-32.15281,lng:116.01493},
+  {n:"JB Hi-Fi Wangara",lat:-31.78977,lng:115.82829},
+  {n:"JB Hi-Fi Osborne Park",lat:-31.90495,lng:115.80451},
+  {n:"JB Hi-Fi Malaga",lat:-31.85233,lng:115.88318},
+  {n:"JB Hi-Fi Balcatta",lat:-31.87634,lng:115.78107},
+  {n:"JB Hi-Fi Karrinyup",lat:-31.87634,lng:115.78107},
+  {n:"JB Hi-Fi Adelaide CBD",lat:-34.92261,lng:138.60142},
+  {n:"JB Hi-Fi Rundle Mall",lat:-34.92261,lng:138.60142},
+  {n:"JB Hi-Fi Marion",lat:-35.01683,lng:138.54464},
+  {n:"JB Hi-Fi Tea Tree Plaza",lat:-34.83191,lng:138.69068},
+  {n:"JB Hi-Fi Elizabeth",lat:-34.71843,lng:138.66918},
+  {n:"JB Hi-Fi Noarlunga",lat:-35.14094,lng:138.49369},
+  {n:"JB Hi-Fi Mount Gambier",lat:-37.82844,lng:140.78068},
+  {n:"JB Hi-Fi Gepps Cross",lat:-34.83836,lng:138.60545},
+  {n:"JB Hi-Fi Munno Para",lat:-34.6908,lng:138.68592},
+  {n:"JB Hi-Fi Gawler",lat:-34.6908,lng:138.68592},
+  {n:"JB Hi-Fi Darwin",lat:-12.37668,lng:130.8816},
+  {n:"JB Hi-Fi Palmerston",lat:-12.43213,lng:130.92299},
+  {n:"JB Hi-Fi Alice Springs",lat:-23.69804,lng:133.88075},
+];
+
+
+const BAS = [
+  {name:"Alisa Tsepelyeva",    suburb:"Westcourt",        state:"QLD", lat:-16.923, lng:145.771},
+  {name:"Carly Castaneda",     suburb:"Northgate",        state:"QLD", lat:-27.414, lng:153.056},
+  {name:"Dulanka Wick",        suburb:"Highton",          state:"VIC", lat:-38.168, lng:144.333},
+  {name:"Jennifer Farrell",    suburb:"Mooloolah Valley", state:"QLD", lat:-26.779, lng:152.960},
+  {name:"Michelle Tonna",      suburb:"Rasmussen",        state:"QLD", lat:-19.292, lng:146.752},
+  {name:"Miguel Angel",        suburb:"Victoria Park",    state:"WA",  lat:-31.969, lng:115.895},
+  {name:"Mukund Rajesh",       suburb:"Darwin",           state:"NT",  lat:-12.462, lng:130.842},
+  {name:"Nancy Lekhi",         suburb:"Alfredton",        state:"VIC", lat:-37.546, lng:143.824},
+  {name:"Nidhi Raj Chawla",    suburb:"Valley View",      state:"SA",  lat:-34.842, lng:138.670},
+  {name:"Sai Amarnath",        suburb:"Chisholm",         state:"NSW", lat:-32.800, lng:151.557},
+  {name:"Violet Forde",        suburb:"Hunters Hill",     state:"NSW", lat:-33.833, lng:151.148},
+  {name:"Rahanan Sathiyakumar",suburb:"Phillip",          state:"ACT", lat:-35.346, lng:149.089},
+  {name:"Lakshmisindhuri Vemana",suburb:"Evandale",       state:"SA",  lat:-34.905, lng:138.643},
+  {name:"Thu (Kristen) Le",    suburb:"Southbank",        state:"VIC", lat:-37.822, lng:144.965},
+  {name:"LOVA Support",        suburb:"Mackay",           state:"QLD", lat:-21.145, lng:149.186},
+];
+
+const RETAILERS = {
+  hn:  {label:"Harvey Norman", color:"#1a56d6", stores:STORES_HN},
+  tgg: {label:"The Good Guys", color:"#dc2626", stores:STORES_TGG},
+  jb:  {label:"JB Hi-Fi",      color:"#d97706", stores:STORES_JB},
+};
+
+let map;
+let allMarkers={hn:[],tgg:[],jb:[],ba:[]};
+let allCircles=[];
+let layers={hn:true,tgg:true,jb:true,ba:true,zones:true};
+let radiusKm=230;
+
+function initMap(){
+  map=new google.maps.Map(document.getElementById('map'),{
+    center:{lat:-27.0,lng:134.0},zoom:5,
+    mapTypeControl:true,streetViewControl:false,fullscreenControl:true,
+    styles:[{featureType:"poi",elementType:"labels",stylers:[{visibility:"off"}]}]
+  });
+
+  // Place all store markers instantly
+  Object.entries(RETAILERS).forEach(([key,r])=>{
+    r.stores.forEach(s=>{
+      const m=new google.maps.Marker({
+        map,position:{lat:s.lat,lng:s.lng},title:s.n,
+        icon:{path:google.maps.SymbolPath.CIRCLE,scale:7,fillColor:r.color,fillOpacity:1,strokeColor:'#fff',strokeWeight:2},
+        zIndex:5
+      });
+      m.addListener('click',()=>showPanel(s.n,r.label,r.color,`📍 ${s.n}`));
+      allMarkers[key].push(m);
+    });
+  });
+
+  // Place BA circles and pins
+  BAS.forEach(ba=>{
+    const circle=new google.maps.Circle({
+      map,center:{lat:ba.lat,lng:ba.lng},radius:radiusKm*1000,
+      fillColor:'#16a34a',fillOpacity:0.09,
+      strokeColor:'#16a34a',strokeOpacity:0.65,strokeWeight:2,zIndex:1
+    });
+    circle.addListener('click',()=>{
+      const n=countNear(ba.lat,ba.lng,radiusKm);
+      showPanel(ba.name,'LOVA support','#16a34a',
+        `📍 ${ba.suburb}, ${ba.state}<br>🎯 ${radiusKm}km coverage zone<br>🏪 <strong>${n} stores</strong> within reach`);
+    });
+    allCircles.push(circle);
+
+    const pin=new google.maps.Marker({
+      map,position:{lat:ba.lat,lng:ba.lng},title:ba.name,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:9,fillColor:'#16a34a',fillOpacity:1,strokeColor:'#fff',strokeWeight:2.5},
+      label:{text:ba.name.split(' ')[0],color:'#fff',fontSize:'7px',fontWeight:'bold'},
+      zIndex:10
+    });
+    pin.addListener('click',()=>{
+      const n=countNear(ba.lat,ba.lng,radiusKm);
+      showPanel(ba.name,'LOVA support','#16a34a',
+        `📍 ${ba.suburb}, ${ba.state}<br>🎯 ${radiusKm}km reach zone<br>🏪 <strong>${n} stores</strong> within reach`);
+    });
+    allMarkers.ba.push(pin);
+  });
+}
+
+function haversine(a,b,c,d){
+  const R=6371,dL=(c-a)*Math.PI/180,dG=(d-b)*Math.PI/180;
+  const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function countNear(lat,lng,km){
+  let n=0;
+  ['hn','tgg','jb'].forEach(k=>{
+    allMarkers[k].forEach(m=>{
+      const p=m.getPosition();
+      if(p&&haversine(lat,lng,p.lat(),p.lng())<=km) n++;
+    });
+  });
+  return n;
+}
+
+function showPanel(title,type,color,html){
+  document.getElementById('ip-type').textContent=type;
+  document.getElementById('ip-type').style.color=color;
+  document.getElementById('ip-title').textContent=title;
+  document.getElementById('ip-details').innerHTML=
+    `<div style="margin-top:6px;font-size:12px;color:#555;line-height:1.9">${html}</div>`;
+  document.getElementById('info-panel').style.display='block';
+}
+
+function toggleLayer(key,btn){
+  layers[key]=!layers[key];
+  btn.classList.toggle('off');
+  if(key==='zones') allCircles.forEach(c=>c.setVisible(layers.zones));
+  else allMarkers[key].forEach(m=>m.setVisible(layers[key]));
+}
+
+function updateRadius(val){
+  radiusKm=parseInt(val);
+  document.getElementById('radius-display').textContent=radiusKm+' km';
+  document.getElementById('leg-r-txt').textContent=radiusKm+'km reach zone';
+  allCircles.forEach(c=>c.setRadius(radiusKm*1000));
+}
+
+window.addEventListener('load',()=>{
+  const key='AIzaSyBqCtoUp3O4Pe8rWHcfZtuLxkGTR1ZENP4';
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${key}&callback=initMap`;
+  s.async=true;s.defer=true;document.head.appendChild(s);
+});
+
+// ── BUILT-IN GEOCODER ──────────────────────────────────────────────────────
+const GEO_STORES = {
+  hn:[
+    // NSW - Metro Sydney
+    "Harvey Norman Auburn NSW","Harvey Norman Artarmon NSW","Harvey Norman Casula NSW",
+    "Harvey Norman Campbelltown NSW","Harvey Norman Alexandria NSW","Harvey Norman Bankstown NSW",
+    "Harvey Norman Penrith NSW","Harvey Norman Rockdale NSW","Harvey Norman Moore Park NSW",
+    "Harvey Norman Rhodes NSW","Harvey Norman Belrose NSW","Harvey Norman Wetherill Park NSW",
+    "Harvey Norman Tuggerah NSW","Harvey Norman Lake Haven NSW","Harvey Norman Blacktown NSW",
+    "Harvey Norman Rouse Hill NSW","Harvey Norman Marsden Park NSW","Harvey Norman Narellan NSW",
+    "Harvey Norman Liverpool NSW","Harvey Norman Chullora NSW","Harvey Norman Sylvania NSW",
+    "Harvey Norman Wiley Park NSW","Harvey Norman Manly NSW","Harvey Norman Waitara NSW",
+    // NSW - Regional
+    "Harvey Norman Broadmeadow NSW","Harvey Norman Kotara NSW","Harvey Norman Jesmond NSW",
+    "Harvey Norman Rutherford NSW","Harvey Norman Coffs Harbour NSW","Harvey Norman Lismore NSW",
+    "Harvey Norman Tweed Heads NSW","Harvey Norman Tamworth NSW","Harvey Norman Orange NSW",
+    "Harvey Norman Dubbo NSW","Harvey Norman Wollongong NSW","Harvey Norman Shellharbour NSW",
+    "Harvey Norman Wagga Wagga NSW","Harvey Norman Albury NSW","Harvey Norman Port Macquarie NSW",
+    "Harvey Norman Maitland NSW","Harvey Norman Erina NSW","Harvey Norman Nowra NSW",
+    "Harvey Norman Bathurst NSW","Harvey Norman Taree NSW","Harvey Norman Cessnock NSW",
+    "Harvey Norman Goulburn NSW","Harvey Norman Griffith NSW","Harvey Norman Armidale NSW",
+    "Harvey Norman Broken Hill NSW","Harvey Norman Batemans Bay NSW","Harvey Norman Mudgee NSW",
+    "Harvey Norman Kempsey NSW","Harvey Norman Raymond Terrace NSW","Harvey Norman Inverell NSW",
+    "Harvey Norman Forster NSW","Harvey Norman Parkes NSW","Harvey Norman Moree NSW",
+    "Harvey Norman Lismore NSW","Harvey Norman Ballina NSW","Harvey Norman Grafton NSW",
+    // ACT
+    "Harvey Norman Fyshwick ACT","Harvey Norman Belconnen ACT","Harvey Norman Tuggeranong ACT",
+    // VIC - Metro Melbourne
+    "Harvey Norman Springvale VIC","Harvey Norman Hoppers Crossing VIC","Harvey Norman Nunawading VIC",
+    "Harvey Norman Thomastown VIC","Harvey Norman Moorabbin VIC","Harvey Norman Cranbourne VIC",
+    "Harvey Norman Epping VIC","Harvey Norman Watergardens VIC","Harvey Norman Sunshine VIC",
+    "Harvey Norman Mentone VIC","Harvey Norman Hawthorn VIC","Harvey Norman Melton VIC",
+    "Harvey Norman Fountain Gate VIC","Harvey Norman Knox VIC","Harvey Norman Frankston VIC",
+    "Harvey Norman Dandenong VIC","Harvey Norman Pakenham VIC","Harvey Norman Craigieburn VIC",
+    "Harvey Norman Narre Warren VIC","Harvey Norman Chirnside Park VIC","Harvey Norman Maribyrnong VIC",
+    "Harvey Norman South Melbourne VIC","Harvey Norman Richmond VIC","Harvey Norman Bundoora VIC",
+    // VIC - Regional
+    "Harvey Norman Geelong VIC","Harvey Norman North Geelong VIC","Harvey Norman Ballarat VIC",
+    "Harvey Norman Bendigo VIC","Harvey Norman Wodonga VIC","Harvey Norman Shepparton VIC",
+    "Harvey Norman Traralgon VIC","Harvey Norman Mildura VIC","Harvey Norman Warrnambool VIC",
+    "Harvey Norman Wangaratta VIC","Harvey Norman Sale VIC","Harvey Norman Horsham VIC",
+    "Harvey Norman Hamilton VIC","Harvey Norman Swan Hill VIC","Harvey Norman Morwell VIC",
+    "Harvey Norman Bairnsdale VIC","Harvey Norman Echuca VIC",
+    // QLD - Metro Brisbane
+    "Harvey Norman Fortitude Valley QLD","Harvey Norman Everton Park QLD","Harvey Norman Capalaba QLD",
+    "Harvey Norman Oxley QLD","Harvey Norman Browns Plains QLD","Harvey Norman North Lakes QLD",
+    "Harvey Norman Morayfield QLD","Harvey Norman Ipswich QLD","Harvey Norman Helensvale QLD",
+    "Harvey Norman Chermside QLD","Harvey Norman Strathpine QLD","Harvey Norman Carindale QLD",
+    "Harvey Norman Booval QLD","Harvey Norman Newstead QLD","Harvey Norman Springwood QLD",
+    "Harvey Norman Toombul QLD","Harvey Norman Jindalee QLD","Harvey Norman Aspley QLD",
+    // QLD - Regional
+    "Harvey Norman Bundall QLD","Harvey Norman Kawana QLD","Harvey Norman Maroochydore QLD",
+    "Harvey Norman Noosaville QLD","Harvey Norman Toowoomba QLD","Harvey Norman Townsville QLD",
+    "Harvey Norman Cairns QLD","Harvey Norman Rockhampton QLD","Harvey Norman Mackay QLD",
+    "Harvey Norman Bundaberg QLD","Harvey Norman Hervey Bay QLD","Harvey Norman Gladstone QLD",
+    "Harvey Norman Mount Isa QLD","Harvey Norman Airlie Beach QLD","Harvey Norman Warwick QLD",
+    "Harvey Norman Dalby QLD","Harvey Norman Gympie QLD","Harvey Norman Maryborough QLD",
+    "Harvey Norman Emerald QLD",
+    // WA
+    "Harvey Norman Cannington WA","Harvey Norman Joondalup WA","Harvey Norman Osborne Park WA",
+    "Harvey Norman Claremont WA","Harvey Norman Mandurah WA","Harvey Norman Rockingham WA",
+    "Harvey Norman Midland WA","Harvey Norman Bunbury WA","Harvey Norman Albany WA",
+    "Harvey Norman Kalgoorlie WA","Harvey Norman Geraldton WA","Harvey Norman Karratha WA",
+    "Harvey Norman Port Hedland WA","Harvey Norman Broome WA","Harvey Norman Busselton WA",
+    "Harvey Norman Wangara WA","Harvey Norman Cockburn WA","Harvey Norman Armadale WA",
+    "Harvey Norman Balcatta WA","Harvey Norman Karrinyup WA",
+    // SA
+    "Harvey Norman Marion SA","Harvey Norman Gepps Cross SA","Harvey Norman Munno Para SA",
+    "Harvey Norman Noarlunga SA","Harvey Norman Whyalla SA","Harvey Norman Mount Gambier SA",
+    "Harvey Norman Port Augusta SA","Harvey Norman Murray Bridge SA","Harvey Norman Mile End SA",
+    "Harvey Norman Mount Barker SA","Harvey Norman Port Pirie SA",
+    // TAS
+    "Harvey Norman Hobart TAS","Harvey Norman Launceston TAS","Harvey Norman Devonport TAS",
+    "Harvey Norman Burnie TAS","Harvey Norman Glenorchy TAS",
+    // NT
+    "Harvey Norman Darwin NT","Harvey Norman Alice Springs NT","Harvey Norman Palmerston NT",
+  ],
+  tgg:[
+    // NSW - Metro Sydney
+    "The Good Guys Artarmon NSW","The Good Guys Penrith NSW","The Good Guys Campbelltown NSW",
+    "The Good Guys Rockdale NSW","The Good Guys Auburn NSW","The Good Guys Casula NSW",
+    "The Good Guys Wetherill Park NSW","The Good Guys Bankstown NSW","The Good Guys Belrose NSW",
+    "The Good Guys Blacktown NSW","The Good Guys Liverpool NSW","The Good Guys Rouse Hill NSW",
+    "The Good Guys Marsden Park NSW","The Good Guys Narellan NSW","The Good Guys Chullora NSW",
+    // NSW - Regional
+    "The Good Guys Coffs Harbour NSW","The Good Guys Newcastle NSW","The Good Guys Kotara NSW",
+    "The Good Guys Rutherford NSW","The Good Guys Tuggerah NSW","The Good Guys Lake Haven NSW",
+    "The Good Guys Wagga Wagga NSW","The Good Guys Wollongong NSW","The Good Guys Shellharbour NSW",
+    "The Good Guys Maitland NSW","The Good Guys Nowra NSW","The Good Guys Bathurst NSW",
+    "The Good Guys Tamworth NSW","The Good Guys Albury NSW","The Good Guys Port Macquarie NSW",
+    "The Good Guys Orange NSW","The Good Guys Dubbo NSW","The Good Guys Lismore NSW",
+    "The Good Guys Tweed Heads NSW","The Good Guys Warners Bay NSW","The Good Guys Cessnock NSW",
+    "The Good Guys Erina NSW","The Good Guys Ballina NSW","The Good Guys Grafton NSW",
+    // ACT
+    "The Good Guys Fyshwick ACT","The Good Guys Belconnen ACT","The Good Guys Tuggeranong ACT",
+    // VIC - Metro Melbourne
+    "The Good Guys Moorabbin VIC","The Good Guys Maribyrnong VIC","The Good Guys Thomastown VIC",
+    "The Good Guys Hawthorn VIC","The Good Guys Cranbourne VIC","The Good Guys Epping VIC",
+    "The Good Guys Hoppers Crossing VIC","The Good Guys Nunawading VIC","The Good Guys Dandenong VIC",
+    "The Good Guys Melton VIC","The Good Guys Fountain Gate VIC","The Good Guys Knox VIC",
+    "The Good Guys Frankston VIC","The Good Guys Springvale VIC","The Good Guys Chadstone VIC",
+    "The Good Guys Chirnside Park VIC","The Good Guys Craigieburn VIC","The Good Guys Brimbank VIC",
+    "The Good Guys Bundoora VIC","The Good Guys South Morang VIC",
+    // VIC - Regional
+    "The Good Guys Geelong VIC","The Good Guys Ballarat VIC","The Good Guys Bendigo VIC",
+    "The Good Guys Wodonga VIC","The Good Guys Shepparton VIC","The Good Guys Traralgon VIC",
+    "The Good Guys Warrnambool VIC","The Good Guys Mildura VIC","The Good Guys Pakenham VIC",
+    "The Good Guys Wangaratta VIC","The Good Guys Bairnsdale VIC",
+    // QLD - Metro Brisbane
+    "The Good Guys Jindalee QLD","The Good Guys Virginia QLD","The Good Guys Capalaba QLD",
+    "The Good Guys Browns Plains QLD","The Good Guys North Lakes QLD","The Good Guys Ipswich QLD",
+    "The Good Guys Helensvale QLD","The Good Guys Maroochydore QLD","The Good Guys Chermside QLD",
+    "The Good Guys Strathpine QLD","The Good Guys Booval QLD","The Good Guys Mt Gravatt QLD",
+    "The Good Guys Morayfield QLD","The Good Guys Southport QLD","The Good Guys Kawana QLD",
+    "The Good Guys Springwood QLD","The Good Guys Aspley QLD",
+    // QLD - Regional
+    "The Good Guys Toowoomba QLD","The Good Guys Townsville QLD","The Good Guys Cairns QLD",
+    "The Good Guys Rockhampton QLD","The Good Guys Mackay QLD","The Good Guys Bundaberg QLD",
+    "The Good Guys Hervey Bay QLD","The Good Guys Gladstone QLD","The Good Guys Warwick QLD",
+    // WA
+    "The Good Guys Osborne Park WA","The Good Guys Victoria Park WA","The Good Guys Cannington WA",
+    "The Good Guys Joondalup WA","The Good Guys Rockingham WA","The Good Guys Midland WA",
+    "The Good Guys Mandurah WA","The Good Guys Bunbury WA","The Good Guys Kalgoorlie WA",
+    "The Good Guys Geraldton WA","The Good Guys Wangara WA","The Good Guys Cockburn WA",
+    "The Good Guys Balcatta WA",
+    // SA
+    "The Good Guys Mile End SA","The Good Guys Munno Para SA","The Good Guys Marion SA",
+    "The Good Guys Noarlunga SA","The Good Guys Gepps Cross SA","The Good Guys Mount Gambier SA",
+    "The Good Guys Whyalla SA","The Good Guys Mount Barker SA",
+    // TAS
+    "The Good Guys Hobart TAS","The Good Guys Launceston TAS","The Good Guys Devonport TAS",
+    "The Good Guys Glenorchy TAS",
+    // NT
+    "The Good Guys Darwin NT","The Good Guys Palmerston NT",
+  ],
+  jb:[
+    // NSW - Metro Sydney
+    "JB Hi-Fi Sydney City NSW","JB Hi-Fi Bondi Junction NSW","JB Hi-Fi Parramatta NSW",
+    "JB Hi-Fi Chatswood NSW","JB Hi-Fi Hornsby NSW","JB Hi-Fi Penrith NSW",
+    "JB Hi-Fi Blacktown NSW","JB Hi-Fi Castle Hill NSW","JB Hi-Fi Hurstville NSW",
+    "JB Hi-Fi Miranda NSW","JB Hi-Fi Liverpool NSW","JB Hi-Fi Campbelltown NSW",
+    "JB Hi-Fi Rouse Hill NSW","JB Hi-Fi Broadway NSW","JB Hi-Fi Macquarie Centre NSW",
+    "JB Hi-Fi Rhodes NSW","JB Hi-Fi Wetherill Park NSW","JB Hi-Fi Homebush NSW",
+    "JB Hi-Fi Chullora NSW","JB Hi-Fi Caringbah NSW","JB Hi-Fi Bankstown NSW",
+    "JB Hi-Fi Seven Hills NSW","JB Hi-Fi Pitt Street Mall NSW","JB Hi-Fi Galeries Victoria NSW",
+    "JB Hi-Fi Narellan NSW","JB Hi-Fi Marsden Park NSW","JB Hi-Fi Warriewood NSW",
+    "JB Hi-Fi Sylvania NSW","JB Hi-Fi Burwood NSW","JB Hi-Fi Eastgardens NSW",
+    "JB Hi-Fi Leichhardt NSW","JB Hi-Fi Newtown NSW","JB Hi-Fi Top Ryde NSW",
+    // NSW - Regional
+    "JB Hi-Fi Tuggerah NSW","JB Hi-Fi Kotara NSW","JB Hi-Fi Charlestown NSW",
+    "JB Hi-Fi Maitland NSW","JB Hi-Fi Wollongong NSW","JB Hi-Fi Shellharbour NSW",
+    "JB Hi-Fi Coffs Harbour NSW","JB Hi-Fi Albury NSW","JB Hi-Fi Wagga Wagga NSW",
+    "JB Hi-Fi Tweed Heads NSW","JB Hi-Fi Port Macquarie NSW","JB Hi-Fi Orange NSW",
+    "JB Hi-Fi Dubbo NSW","JB Hi-Fi Tamworth NSW","JB Hi-Fi Lismore NSW",
+    "JB Hi-Fi Bathurst NSW","JB Hi-Fi Nowra NSW","JB Hi-Fi Gosford NSW",
+    "JB Hi-Fi Lake Haven NSW","JB Hi-Fi Warners Bay NSW","JB Hi-Fi Cessnock NSW",
+    "JB Hi-Fi Ballina NSW","JB Hi-Fi Grafton NSW","JB Hi-Fi Goulburn NSW",
+    "JB Hi-Fi Griffith NSW","JB Hi-Fi Armidale NSW",
+    // ACT
+    "JB Hi-Fi Fyshwick ACT","JB Hi-Fi Belconnen ACT","JB Hi-Fi Woden ACT",
+    "JB Hi-Fi Tuggeranong ACT","JB Hi-Fi Canberra City ACT",
+    // VIC - Metro Melbourne
+    "JB Hi-Fi Melbourne CBD VIC","JB Hi-Fi Chadstone VIC","JB Hi-Fi Southland VIC",
+    "JB Hi-Fi Doncaster VIC","JB Hi-Fi Greensborough VIC","JB Hi-Fi Knox City VIC",
+    "JB Hi-Fi Frankston VIC","JB Hi-Fi Fountain Gate VIC","JB Hi-Fi Werribee VIC",
+    "JB Hi-Fi Highpoint VIC","JB Hi-Fi Northland VIC","JB Hi-Fi Eastland VIC",
+    "JB Hi-Fi The Glen VIC","JB Hi-Fi Plenty Valley VIC","JB Hi-Fi Brimbank VIC",
+    "JB Hi-Fi Airport West VIC","JB Hi-Fi Altona VIC","JB Hi-Fi Camberwell VIC",
+    "JB Hi-Fi Springvale VIC","JB Hi-Fi Craigieburn VIC","JB Hi-Fi Narre Warren VIC",
+    "JB Hi-Fi Maribyrnong VIC","JB Hi-Fi Epping VIC","JB Hi-Fi Dandenong VIC",
+    "JB Hi-Fi Moorabbin VIC","JB Hi-Fi Hawthorn VIC","JB Hi-Fi Richmond VIC",
+    "JB Hi-Fi South Wharf VIC","JB Hi-Fi Bourke Street VIC","JB Hi-Fi Chirnside Park VIC",
+    "JB Hi-Fi Bundoora VIC","JB Hi-Fi Caroline Springs VIC","JB Hi-Fi Ringwood VIC",
+    "JB Hi-Fi Brighton VIC","JB Hi-Fi Pakenham VIC","JB Hi-Fi Cranbourne VIC",
+    "JB Hi-Fi Hoppers Crossing VIC","JB Hi-Fi South Morang VIC","JB Hi-Fi Thomastown VIC",
+    // VIC - Regional
+    "JB Hi-Fi Geelong VIC","JB Hi-Fi North Geelong VIC","JB Hi-Fi Ballarat VIC",
+    "JB Hi-Fi Bendigo VIC","JB Hi-Fi Shepparton VIC","JB Hi-Fi Wodonga VIC",
+    "JB Hi-Fi Traralgon VIC","JB Hi-Fi Warrnambool VIC","JB Hi-Fi Mildura VIC",
+    "JB Hi-Fi Wangaratta VIC","JB Hi-Fi Sale VIC","JB Hi-Fi Horsham VIC",
+    // TAS
+    "JB Hi-Fi Hobart TAS","JB Hi-Fi Launceston TAS","JB Hi-Fi Devonport TAS",
+    "JB Hi-Fi Glenorchy TAS",
+    // QLD - Metro Brisbane
+    "JB Hi-Fi Brisbane City QLD","JB Hi-Fi Carindale QLD","JB Hi-Fi Mt Gravatt QLD",
+    "JB Hi-Fi Chermside QLD","JB Hi-Fi North Lakes QLD","JB Hi-Fi Indooroopilly QLD",
+    "JB Hi-Fi Garden City QLD","JB Hi-Fi Robina QLD","JB Hi-Fi Pacific Fair QLD",
+    "JB Hi-Fi Helensvale QLD","JB Hi-Fi Capalaba QLD","JB Hi-Fi Hyperdome QLD",
+    "JB Hi-Fi Morayfield QLD","JB Hi-Fi Ipswich QLD","JB Hi-Fi Strathpine QLD",
+    "JB Hi-Fi Booval QLD","JB Hi-Fi Browns Plains QLD","JB Hi-Fi Virginia QLD",
+    "JB Hi-Fi Jindalee QLD","JB Hi-Fi Toombul QLD","JB Hi-Fi Nundah QLD",
+    "JB Hi-Fi Springwood QLD","JB Hi-Fi Aspley QLD","JB Hi-Fi Newstead QLD",
+    "JB Hi-Fi Coorparoo QLD","JB Hi-Fi Everton Park QLD",
+    // QLD - Regional
+    "JB Hi-Fi Maroochydore QLD","JB Hi-Fi Noosa QLD","JB Hi-Fi Kawana QLD",
+    "JB Hi-Fi Toowoomba QLD","JB Hi-Fi Townsville QLD","JB Hi-Fi Garbutt QLD",
+    "JB Hi-Fi Cairns QLD","JB Hi-Fi Cairns Central QLD","JB Hi-Fi Rockhampton QLD",
+    "JB Hi-Fi Mackay QLD","JB Hi-Fi Bundaberg QLD","JB Hi-Fi Hervey Bay QLD",
+    "JB Hi-Fi Gladstone QLD","JB Hi-Fi Warwick QLD","JB Hi-Fi Toowoomba Home QLD",
+    "JB Hi-Fi Browns Plains Home QLD",
+    // WA
+    "JB Hi-Fi Perth CBD WA","JB Hi-Fi Carousel WA","JB Hi-Fi Innaloo WA",
+    "JB Hi-Fi Joondalup WA","JB Hi-Fi Morley WA","JB Hi-Fi Garden City Booragoon WA",
+    "JB Hi-Fi Whitfords WA","JB Hi-Fi Mandurah WA","JB Hi-Fi Rockingham WA",
+    "JB Hi-Fi Midland WA","JB Hi-Fi Cockburn WA","JB Hi-Fi Bunbury WA",
+    "JB Hi-Fi Albany WA","JB Hi-Fi Kalgoorlie WA","JB Hi-Fi Geraldton WA",
+    "JB Hi-Fi Karratha WA","JB Hi-Fi Cannington WA","JB Hi-Fi Armadale WA",
+    "JB Hi-Fi Wangara WA","JB Hi-Fi Osborne Park WA","JB Hi-Fi Malaga WA",
+    "JB Hi-Fi Balcatta WA","JB Hi-Fi Karrinyup WA","JB Hi-Fi Burnside WA",
+    // SA
+    "JB Hi-Fi Adelaide CBD SA","JB Hi-Fi Rundle Mall SA","JB Hi-Fi Marion SA",
+    "JB Hi-Fi Tea Tree Plaza SA","JB Hi-Fi Elizabeth SA","JB Hi-Fi Noarlunga SA",
+    "JB Hi-Fi Harbour Town SA","JB Hi-Fi Mount Gambier SA","JB Hi-Fi Gepps Cross SA",
+    "JB Hi-Fi Munno Para SA","JB Hi-Fi Chirnside Park SA","JB Hi-Fi Gawler SA",
+    // NT
+    "JB Hi-Fi Darwin NT","JB Hi-Fi Palmerston NT","JB Hi-Fi Alice Springs NT",
+  ]
+};
+
+let geoRunning=false, geoDone=0, geoTotal=0, geoResults={hn:[],tgg:[],jb:[]};
+
+function showGeocoder(){
+  document.getElementById('geo-overlay').style.display='flex';
+}
+
+async function runGeocode(){
+  if(geoRunning) return;
+  geoRunning=true;
+  geoDone=0; geoResults={hn:[],tgg:[],jb:[]};
+  const key=document.getElementById('geo-key').value.trim();
+  if(!key){alert('Please enter your API key');geoRunning=false;return;}
+  const all=[];
+  Object.entries(GEO_STORES).forEach(([t,list])=>list.forEach(n=>all.push({t,n})));
+  geoTotal=all.length;
+  document.getElementById('geo-bar-wrap').style.display='block';
+  document.getElementById('geo-output-wrap').style.display='none';
+  document.getElementById('geo-run-btn').disabled=true;
+
+  for(const s of all){
+    try{
+      const r=await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(s.n+' Australia')}&key=${key}&region=au`);
+      const d=await r.json();
+      if(d.status==='OK'&&d.results[0]){
+        const l=d.results[0].geometry.location;
+        geoResults[s.t].push({n:s.n.replace(/ (NSW|VIC|QLD|WA|SA|TAS|NT|ACT)$/,''),lat:Math.round(l.lat*100000)/100000,lng:Math.round(l.lng*100000)/100000});
+      }
+    }catch(e){}
+    geoDone++;
+    const pct=Math.round((geoDone/geoTotal)*100);
+    document.getElementById('geo-bar').style.width=pct+'%';
+    document.getElementById('geo-status').textContent=`Looking up stores... ${geoDone} of ${geoTotal} (${pct}%)`;
+    await new Promise(r=>setTimeout(r,60));
+  }
+
+  let out='COPY EVERYTHING BELOW THIS LINE\n\n';
+  ['hn','tgg','jb'].forEach(k=>{
+    out+=`const STORES_${k.toUpperCase()} = [\n`;
+    geoResults[k].forEach(s=>out+=`  {n:"${s.n}",lat:${s.lat},lng:${s.lng}},\n`);
+    out+=`];\n\n`;
+  });
+  out+=`// TOTALS: HN=${geoResults.hn.length}, TGG=${geoResults.tgg.length}, JB=${geoResults.jb.length}`;
+  document.getElementById('geo-output').value=out;
+  document.getElementById('geo-output-wrap').style.display='block';
+  document.getElementById('geo-status').textContent=`✅ Done! HN: ${geoResults.hn.length}, TGG: ${geoResults.tgg.length}, JB: ${geoResults.jb.length} stores found. Copy everything below and paste to Claude.`;
+  geoRunning=false;
+}
+
+function copyGeoOutput(){
+  const ta=document.getElementById('geo-output');
+  ta.select();document.execCommand('copy');
+  document.getElementById('geo-copy-btn').textContent='✅ Copied!';
+  setTimeout(()=>document.getElementById('geo-copy-btn').textContent='📋 Copy All',2000);
+}
+</script>
+
+<!-- GEOCODER OVERLAY -->
+<div id="geo-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:24px 28px;max-width:480px;width:92%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="font-size:15px;font-weight:600">Store Coordinate Updater</h3>
+      <button onclick="document.getElementById('geo-overlay').style.display='none'" style="background:none;border:none;font-size:18px;cursor:pointer;color:#aaa">✕</button>
+    </div>
+    <p style="font-size:12px;color:#555;margin-bottom:12px;line-height:1.6">This will look up accurate coordinates for all 300+ stores using Google's Geocoding API. Takes about 3–4 minutes. Make sure <strong>Geocoding API</strong> is enabled in your Google Cloud Console.</p>
+    <input type="text" id="geo-key" placeholder="Paste your API key (AIzaSy...)" style="width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:7px;font-size:12px;margin-bottom:10px;font-family:monospace"/>
+    <button id="geo-run-btn" onclick="runGeocode()" style="width:100%;padding:9px;background:#0f172a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px">Find All Store Coordinates →</button>
+    <div id="geo-status" style="font-size:12px;color:#555;margin-bottom:6px"></div>
+    <div id="geo-bar-wrap" style="display:none;width:100%;height:6px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:12px">
+      <div id="geo-bar" style="height:100%;background:#1a56d6;border-radius:4px;width:0%;transition:width .3s"></div>
+    </div>
+    <div id="geo-output-wrap" style="display:none">
+      <p style="font-size:12px;color:#16a34a;font-weight:600;margin-bottom:6px">✅ Done! Copy everything below and paste it to Claude:</p>
+      <textarea id="geo-output" readonly style="width:100%;height:200px;font-family:monospace;font-size:10px;border:1px solid #d1d5db;border-radius:6px;padding:8px;resize:vertical"></textarea>
+      <button id="geo-copy-btn" onclick="copyGeoOutput()" style="width:100%;margin-top:8px;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">📋 Copy All</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
