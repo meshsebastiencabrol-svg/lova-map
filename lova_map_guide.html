@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lova × SharkNinja — Map Creation Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#16a34a;--blue:#1a56d6;--dark:#0f172a;--mid:#334155;
+    --light:#f8fafc;--border:#e2e8f0;--yellow:#fbbf24;--red:#dc2626;
+    --orange:#d97706;
+  }
+  body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;color:var(--dark)}
+
+  /* HEADER */
+  header{background:var(--dark);color:#fff;padding:40px 24px 32px;text-align:center}
+  .logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px}
+  .pill{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.5px}
+  .pill-lova{background:#fff;color:var(--dark)}
+  .pill-sn{background:#1a56d6;color:#fff}
+  header h1{font-size:26px;font-weight:700;margin-bottom:8px}
+  header p{font-size:14px;color:#94a3b8;max-width:500px;margin:0 auto}
+
+  /* PROGRESS */
+  #progress-bar{background:#1e293b;padding:16px 24px;display:flex;align-items:center;gap:0;overflow-x:auto;border-bottom:1px solid #334155}
+  .prog-step{display:flex;align-items:center;gap:0;cursor:pointer;flex-shrink:0}
+  .prog-dot{width:28px;height:28px;border-radius:50%;border:2px solid #475569;background:transparent;color:#475569;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+  .prog-dot.active{background:var(--blue);border-color:var(--blue);color:#fff}
+  .prog-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+  .prog-label{font-size:10px;color:#64748b;margin-left:6px;white-space:nowrap;display:none}
+  @media(min-width:600px){.prog-label{display:block}}
+  .prog-line{width:20px;height:2px;background:#334155;margin:0 4px;flex-shrink:0}
+  .prog-line.done{background:var(--green)}
+
+  /* MAIN */
+  main{max-width:720px;margin:0 auto;padding:24px 16px 60px}
+
+  /* STEP CARD */
+  .step-card{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;display:none}
+  .step-card.active{display:block}
+  .step-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px}
+  .step-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+  .step-num{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .step-title{font-size:18px;font-weight:700;color:var(--dark)}
+  .step-subtitle{font-size:13px;color:#64748b;margin-top:3px}
+  .step-body{padding:20px 24px}
+
+  /* INSTRUCTION BLOCKS */
+  .instruction{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
+  .inst-num{width:26px;height:26px;border-radius:50%;background:var(--dark);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .inst-text{font-size:13px;color:var(--mid);line-height:1.7;flex:1}
+  .inst-text strong{color:var(--dark);font-weight:600}
+  .inst-text a{color:var(--blue);text-decoration:none}
+
+  /* HIGHLIGHTS */
+  .highlight{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:#14532d;line-height:1.6}
+  .highlight.blue{background:#eff6ff;border-color:#93c5fd;color:#1e3a5f}
+  .highlight.yellow{background:#fffbeb;border-color:#fcd34d;color:#78350f}
+  .highlight.red{background:#fef2f2;border-color:#fca5a5;color:#7f1d1d}
+
+  /* CODE */
+  .code-block{background:#0f172a;border-radius:8px;padding:12px 16px;font-family:'Fira Code',monospace;font-size:12px;color:#e2e8f0;margin:10px 0;overflow-x:auto;position:relative}
+  .code-block .copy-btn{position:absolute;top:8px;right:8px;background:#334155;color:#94a3b8;border:none;border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:'Inter',sans-serif}
+  .code-block .copy-btn:hover{background:#475569;color:#fff}
+  .code-highlight{color:#34d399}
+  .code-comment{color:#475569}
+
+  /* TAG */
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:0 2px}
+  .tag-green{background:#dcfce7;color:#166534}
+  .tag-blue{background:#dbeafe;color:#1e40af}
+  .tag-orange{background:#fed7aa;color:#9a3412}
+
+  /* CHECKLIST */
+  .checklist{list-style:none;margin:12px 0}
+  .checklist li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--mid);margin-bottom:8px;line-height:1.6}
+  .check-icon{width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+
+  /* RETAILER PILLS */
+  .retailer-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .ret-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid}
+  .ret-hn{background:#eff6ff;color:var(--blue);border-color:#93c5fd}
+  .ret-tgg{background:#fef2f2;color:var(--red);border-color:#fca5a5}
+  .ret-jb{background:#fffbeb;color:var(--orange);border-color:#fcd34d}
+  .ret-ba{background:#f0fdf4;color:var(--green);border-color:#86efac}
+  .ret-dot{width:8px;height:8px;border-radius:50%}
+
+  /* NAVIGATION */
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+  .btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:'Inter',sans-serif}
+  .btn-back{background:#f1f5f9;color:var(--mid)}
+  .btn-back:hover{background:#e2e8f0}
+  .btn-next{background:var(--dark);color:#fff;display:flex;align-items:center;gap:6px}
+  .btn-next:hover{background:#1e293b}
+  .btn-next:disabled{background:#cbd5e1;cursor:not-allowed}
+  .btn-finish{background:var(--green);color:#fff}
+  .btn-finish:hover{background:#15803d}
+
+  /* STEP COUNTER */
+  .step-counter{font-size:12px;color:#94a3b8;text-align:center}
+
+  /* SUMMARY */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+  .summary-card{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+  .summary-num{font-size:28px;font-weight:700;color:var(--dark)}
+  .summary-lbl{font-size:11px;color:#64748b;margin-top:2px}
+
+  /* TOOL REQUIRED */
+  .tool-required{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:10px 0;display:flex;align-items:center;gap:12px}
+  .tool-icon{font-size:24px}
+  .tool-name{font-size:13px;font-weight:600;color:var(--dark)}
+  .tool-desc{font-size:12px;color:#64748b;margin-top:2px}
+  .tool-free{font-size:10px;font-weight:700;color:var(--green);background:#dcfce7;padding:2px 7px;border-radius:10px;margin-left:6px}
+
+  /* FINAL */
+  .final-hero{text-align:center;padding:20px 0}
+  .final-hero .big-tick{font-size:56px;margin-bottom:12px}
+  .final-hero h2{font-size:22px;font-weight:700;margin-bottom:8px}
+  .final-hero p{font-size:14px;color:#64748b;max-width:400px;margin:0 auto 20px}
+  .share-box{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;font-family:'Fira Code',monospace;font-size:12px;color:#166534;word-break:break-all;margin:12px 0}
+
+  /* TIME ESTIMATE */
+  .time-badge{display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:#64748b;margin-top:6px}
+
+  @media(max-width:480px){
+    .summary-grid{grid-template-columns:1fr 1fr}
+    header h1{font-size:20px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <span class="pill pill-lova">LOVA</span>
+    <span style="color:#475569;font-size:18px">×</span>
+    <span class="pill pill-sn">SharkNinja</span>
+  </div>
+  <h1>Interactive Store Coverage Map</h1>
+  <p>Step-by-step guide to recreate this map from scratch</p>
+  <div class="time-badge">⏱ Total time: approximately 30–45 minutes</div>
+</header>
+
+<div id="progress-bar">
+  <div class="prog-step" onclick="goTo(0)">
+    <div class="prog-dot active" id="pd0">1</div>
+    <span class="prog-label" style="color:#94a3b8">Overview</span>
+  </div>
+  <div class="prog-line" id="pl0"></div>
+  <div class="prog-step" onclick="goTo(1)">
+    <div class="prog-dot" id="pd1">2</div>
+    <span class="prog-label">Google Account</span>
+  </div>
+  <div class="prog-line" id="pl1"></div>
+  <div class="prog-step" onclick="goTo(2)">
+    <div class="prog-dot" id="pd2">3</div>
+    <span class="prog-label">API Key</span>
+  </div>
+  <div class="prog-line" id="pl2"></div>
+  <div class="prog-step" onclick="goTo(3)">
+    <div class="prog-dot" id="pd3">4</div>
+    <span class="prog-label">Enable APIs</span>
+  </div>
+  <div class="prog-line" id="pl3"></div>
+  <div class="prog-step" onclick="goTo(4)">
+    <div class="prog-dot" id="pd4">5</div>
+    <span class="prog-label">Get Map File</span>
+  </div>
+  <div class="prog-line" id="pl4"></div>
+  <div class="prog-step" onclick="goTo(5)">
+    <div class="prog-dot" id="pd5">6</div>
+    <span class="prog-label">Store Data</span>
+  </div>
+  <div class="prog-line" id="pl5"></div>
+  <div class="prog-step" onclick="goTo(6)">
+    <div class="prog-dot" id="pd6">7</div>
+    <span class="prog-label">GitHub Pages</span>
+  </div>
+  <div class="prog-line" id="pl6"></div>
+  <div class="prog-step" onclick="goTo(7)">
+    <div class="prog-dot" id="pd7">8</div>
+    <span class="prog-label">Share!</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- STEP 0: OVERVIEW -->
+  <div class="step-card active" id="step0">
+    <div class="step-header">
+      <div class="step-icon" style="background:#f0fdf4">🗺️</div>
+      <div>
+        <div class="step-num">Step 1 of 8</div>
+        <div class="step-title">What you are building</div>
+        <div class="step-subtitle">An interactive Google Map showing all retail stores and BA coverage zones</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="highlight blue">
+        This map was built using <strong>Claude AI</strong> (claude.ai) and <strong>Google Maps</strong>. It took one conversation to create. This guide shows you how to recreate it from scratch for any brand or territory.
+      </div>
+
+      <p style="font-size:13px;color:var(--mid);margin:16px 0 10px;font-weight:600">What the map includes:</p>
+      <div class="retailer-row">
+        <div class="ret-pill ret-hn"><div class="ret-dot" style="background:#1a56d6"></div>180 Harvey Norman stores</div>
+        <div class="ret-pill ret-tgg"><div class="ret-dot" style="background:#dc2626"></div>126 The Good Guys stores</div>
+        <div class="ret-pill ret-jb"><div class="ret-dot" style="background:#d97706"></div>200 JB Hi-Fi stores</div>
+        <div class="ret-pill ret-ba"><div class="ret-dot" style="background:#16a34a"></div>15 LOVA support zones</div>
+      </div>
+
+      <div class="summary-grid" style="margin-top:16px">
+        <div class="summary-card">
+          <div class="summary-num">506</div>
+          <div class="summary-lbl">Total store pins</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num">200km</div>
+          <div class="summary-lbl">Default BA radius</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num">$0</div>
+          <div class="summary-lbl">Total cost</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num">∞</div>
+          <div class="summary-lbl">Hosted forever</div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--mid);margin:16px 0 10px;font-weight:600">Tools you will need:</p>
+      <div class="tool-required">
+        <div class="tool-icon">🤖</div>
+        <div>
+          <div class="tool-name">Claude AI <span class="tool-free">FREE</span></div>
+          <div class="tool-desc">claude.ai — to generate the map HTML file</div>
+        </div>
+      </div>
+      <div class="tool-required">
+        <div class="tool-icon">🗺️</div>
+        <div>
+          <div class="tool-name">Google Maps API <span class="tool-free">FREE*</span></div>
+          <div class="tool-desc">*$200 free credit per month — more than enough for internal use</div>
+        </div>
+      </div>
+      <div class="tool-required">
+        <div class="tool-icon">🐙</div>
+        <div>
+          <div class="tool-name">GitHub Pages <span class="tool-free">FREE FOREVER</span></div>
+          <div class="tool-desc">github.com — to host the map online so anyone can access it</div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <div class="step-counter">Step 1 of 8</div>
+        <button class="btn btn-next" onclick="next()">Get started →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: GOOGLE ACCOUNT -->
+  <div class="step-card" id="step1">
+    <div class="step-header">
+      <div class="step-icon" style="background:#fef2f2">📧</div>
+      <div>
+        <div class="step-num">Step 2 of 8</div>
+        <div class="step-title">Set up a Google Account</div>
+        <div class="step-subtitle">You need a Gmail account to access Google Cloud Console</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="highlight yellow">
+        If you already have a Gmail account, skip straight to Step 3!
+      </div>
+
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Go to <a href="https://accounts.google.com/signup" target="_blank">accounts.google.com/signup</a></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Fill in your name, choose a Gmail address and password</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">Verify your phone number and complete setup</div>
+      </div>
+
+      <div class="highlight">
+        ✅ You now have a Google account — the same one works for Google Maps API, Google Drive, and GitHub (if you choose to sign in with Google).
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 2 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: API KEY -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div class="step-icon" style="background:#eff6ff">🔑</div>
+      <div>
+        <div class="step-num">Step 3 of 8</div>
+        <div class="step-title">Get a Google Maps API Key</div>
+        <div class="step-subtitle">This is the key that makes the map work — takes about 5 minutes</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> and sign in with your Google account</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Click <strong>"Select a project"</strong> at the top → click <strong>"New Project"</strong> → name it anything (e.g. <em>Lova Map</em>) → click <strong>Create</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">Go to <a href="https://console.cloud.google.com/billing" target="_blank">console.cloud.google.com/billing</a> → click <strong>"Link a billing account"</strong> → enter your credit card. <em>Google gives $200 free credit every month — you will not be charged for normal use.</em></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">4</div>
+        <div class="inst-text">Go to <a href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank">console.cloud.google.com/google/maps-apis/credentials</a> → click <strong>"+ Create Credentials"</strong> → select <strong>"API key"</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">5</div>
+        <div class="inst-text">A popup shows your key — it looks like <span class="tag tag-blue">AIzaSyB3xxxxxxxxxxxxxxx</span> — click <strong>Copy</strong> and save it somewhere safe</div>
+      </div>
+
+      <div class="highlight yellow">
+        ⚠️ Keep your API key private — do not share it publicly or post it on social media. Anyone with your key could use your Google Maps quota.
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 3 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: ENABLE APIs -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div class="step-icon" style="background:#f0fdf4">⚡</div>
+      <div>
+        <div class="step-num">Step 4 of 8</div>
+        <div class="step-title">Enable the 3 Required APIs</div>
+        <div class="step-subtitle">Click each link below and press the blue Enable button</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="highlight blue">
+        You need to enable 3 APIs. Each takes 10 seconds — just click the link and press <strong>Enable</strong>.
+      </div>
+
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">
+          <strong>Maps JavaScript API</strong> — displays the actual Google Map<br>
+          <a href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com" target="_blank">→ Enable Maps JavaScript API</a>
+        </div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">
+          <strong>Places API</strong> — searches for stores automatically (optional, only needed if using live search)<br>
+          <a href="https://console.cloud.google.com/apis/library/places-backend.googleapis.com" target="_blank">→ Enable Places API</a>
+        </div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">
+          <strong>Geocoding API</strong> — converts store addresses into map coordinates<br>
+          <a href="https://console.cloud.google.com/apis/library/geocoding-backend.googleapis.com" target="_blank">→ Enable Geocoding API</a>
+        </div>
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-icon">✓</div>Maps JavaScript API enabled</li>
+        <li><div class="check-icon">✓</div>Places API enabled</li>
+        <li><div class="check-icon">✓</div>Geocoding API enabled</li>
+      </ul>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 4 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: GET MAP FILE -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div class="step-icon" style="background:#faf5ff">🤖</div>
+      <div>
+        <div class="step-num">Step 5 of 8</div>
+        <div class="step-title">Generate the Map File with Claude AI</div>
+        <div class="step-subtitle">Ask Claude to build the map — it takes one conversation</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Go to <a href="https://claude.ai" target="_blank">claude.ai</a> and sign in (free account works)</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Start a new conversation and paste this prompt:</div>
+      </div>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyPrompt()">Copy</button>
+        <span class="code-highlight">Create an interactive HTML map of Australia using Google Maps API that shows:</span><br>
+        - Blue pins for all Harvey Norman stores<br>
+        - Red pins for all The Good Guys stores<br>
+        - Orange pins for all JB Hi-Fi stores<br>
+        - Green pins and 200km radius circles for Brand Ambassadors<br><br>
+        <span class="code-comment">Include toggle buttons to show/hide each layer, a radius slider,</span><br>
+        <span class="code-comment">and a click panel showing store name and details.</span><br>
+        <span class="code-comment">Hardcode the API key directly into the file.</span><br>
+        <span class="code-comment">The map should load instantly with no searching.</span>
+      </div>
+
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">Follow Claude's instructions — it will ask for your BA list (names + suburb + state) and will build the complete HTML file</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">4</div>
+        <div class="inst-text">When Claude gives you the file, download it. Then ask Claude to <strong>"hardcode my API key into the file"</strong> and paste your API key — this means the map opens automatically without anyone needing to enter a key</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">5</div>
+        <div class="inst-text">To get accurate store coordinates, use the built-in <strong>⚙️ Update Store Data</strong> button inside the map — it geocodes every store automatically using your API key</div>
+      </div>
+
+      <div class="highlight">
+        💡 Tip: The more detail you give Claude about your BAs (name, suburb, state) the more accurate the map will be. You can also upload a spreadsheet directly to Claude.
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 5 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: STORE DATA -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div class="step-icon" style="background:#fff7ed">📍</div>
+      <div>
+        <div class="step-num">Step 6 of 8</div>
+        <div class="step-title">Update Store Coordinates</div>
+        <div class="step-subtitle">Use the built-in geocoder to get accurate locations for every store</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="highlight blue">
+        The map file includes a built-in <strong>⚙️ Update Store Data</strong> tool that automatically looks up GPS coordinates for all 500+ stores using Google's Geocoding API.
+      </div>
+
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Open your <strong>lova_sharkninja_map.html</strong> file in your browser (double-click it)</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Click the <strong>⚙️ Update Store Data</strong> button in the top right of the header</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">Paste your Google Maps API key and click <strong>"Find All Store Coordinates →"</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">4</div>
+        <div class="inst-text">Wait 3–5 minutes while it geocodes all stores — you'll see a progress bar</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">5</div>
+        <div class="inst-text">Click <strong>📋 Copy All</strong> and paste the result back into Claude — Claude will update the map file with all the accurate coordinates</div>
+      </div>
+
+      <div class="highlight yellow">
+        ⏱ This step takes about 5 minutes but only needs to be done once. After that the map loads instantly every time.
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 6 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: GITHUB -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div class="step-icon" style="background:#f1f5f9">🐙</div>
+      <div>
+        <div class="step-num">Step 7 of 8</div>
+        <div class="step-title">Host on GitHub Pages</div>
+        <div class="step-subtitle">Get a permanent shareable link — free forever, takes 5 minutes</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Go to <a href="https://github.com" target="_blank">github.com</a> → sign up for a free account (or log in if you have one)</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Click the green <strong>"New"</strong> button → name the repository <span class="tag tag-blue">lova-map</span> → set to <strong>Public</strong> → tick <strong>"Add a README file"</strong> → click <strong>Create repository</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">3</div>
+        <div class="inst-text">Inside the repository click <strong>"Add file"</strong> → <strong>"Upload files"</strong> → drag your <span class="tag tag-blue">lova_sharkninja_map.html</span> file → click <strong>Commit changes</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">4</div>
+        <div class="inst-text">Click <strong>Settings</strong> (top menu) → scroll left sidebar to <strong>Pages</strong> → under Source select <strong>"Deploy from a branch"</strong> → choose <strong>main</strong> → click <strong>Save</strong></div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">5</div>
+        <div class="inst-text">Wait 2–3 minutes then refresh — you'll see a green banner: <em>"Your site is live at..."</em></div>
+      </div>
+
+      <div class="highlight">
+        Your permanent link will be:<br><br>
+        <span style="font-family:'Fira Code',monospace;font-size:12px;color:#166534">
+          https://<strong>YOUR-USERNAME</strong>.github.io/lova-map/lova_sharkninja_map.html
+        </span>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-back" onclick="prev()">← Back</button>
+        <div class="step-counter">Step 7 of 8</div>
+        <button class="btn btn-next" onclick="next()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7: SHARE -->
+  <div class="step-card" id="step7">
+    <div class="step-header">
+      <div class="step-icon" style="background:#f0fdf4">🎉</div>
+      <div>
+        <div class="step-num">Step 8 of 8</div>
+        <div class="step-title">Share with your client!</div>
+        <div class="step-subtitle">Your map is live — share it anywhere, on any device</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <div class="final-hero">
+        <div class="big-tick">🗺️</div>
+        <h2>Your map is ready!</h2>
+        <p>Anyone with the link can open it instantly on any phone, tablet or computer — no downloads, no apps, no setup.</p>
+      </div>
+
+      <p style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:10px">How to share:</p>
+
+      <div class="tool-required">
+        <div class="tool-icon">📱</div>
+        <div>
+          <div class="tool-name">WhatsApp / SMS</div>
+          <div class="tool-desc">Paste the link — recipient taps it and map opens instantly on their phone</div>
+        </div>
+      </div>
+      <div class="tool-required">
+        <div class="tool-icon">📧</div>
+        <div>
+          <div class="tool-name">Email</div>
+          <div class="tool-desc">Paste the link in an email — works on any email client</div>
+        </div>
+      </div>
+      <div class="tool-required">
+        <div class="tool-icon">📊</div>
+        <div>
+          <div class="tool-name">PowerPoint (Web Viewer)</div>
+          <div class="tool-desc">Insert → Get Add-ins → search "Web Viewer" → paste the link → fully interactive in slideshow mode</div>
+        </div>
+      </div>
+
+      <div class="highlight">
+        ✅ The map is <strong>fully interactive</strong> — clients can zoom, tap pins, toggle layers, and adjust the BA radius live during your presentation.
+      </div>
+
+      <p style="font-size:13px;font-weight:600;color:var(--dark);margin:16px 0 8px">To update the map in future:</p>
+      <div class="instruction">
+        <div class="inst-num">1</div>
+        <div class="inst-text">Ask Claude to make changes (add BAs, change radius, add stores)</div>
+      </div>
+      <div class="instruction">
+        <div class="inst-num">2</div>
+        <div class="inst-text">Download the new file → upload it to your GitHub repository (same filename) → the link stays the same ✅</div>
+      </div>
+
+      <div class="highlight blue">
+        💡 The whole process — from zero to live map — takes about <strong>30–45 minutes</strong> the first time. Updates take less than <strong>5 minutes</strong>.
+      </div>
+
+      <div style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+        <p style="font-size:12px;color:#94a3b8;margin-bottom:12px">Built with Claude AI × Google Maps × GitHub Pages</p>
+        <button class="btn btn-finish" onclick="restart()">↺ Start over</button>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+let current = 0;
+const total = 8;
+
+function goTo(n) {
+  document.getElementById('step' + current).classList.remove('active');
+  current = n;
+  document.getElementById('step' + current).classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function next() { if(current < total-1) goTo(current+1); }
+function prev() { if(current > 0) goTo(current-1); }
+function restart() { goTo(0); }
+
+function updateProgress() {
+  for(let i=0;i<total;i++){
+    const dot = document.getElementById('pd'+i);
+    dot.classList.remove('active','done');
+    if(i < current) dot.classList.add('done'), dot.textContent='✓';
+    else if(i === current) dot.classList.add('active'), dot.textContent=(i+1);
+    else dot.textContent=(i+1);
+    if(i < total-1){
+      const line = document.getElementById('pl'+i);
+      if(line) line.classList.toggle('done', i < current);
+    }
+  }
+}
+
+function copyPrompt() {
+  const text = `Create an interactive HTML map of Australia using Google Maps API that shows:
+- Blue pins for all Harvey Norman stores
+- Red pins for all The Good Guys stores  
+- Orange pins for all JB Hi-Fi stores
+- Green pins and 200km radius circles for Brand Ambassadors
+
+Include toggle buttons to show/hide each layer, a radius slider,
+and a click panel showing store name and details.
+Hardcode the API key directly into the file.
+The map should load instantly with no searching.`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>btn.textContent='Copy', 2000);
+  });
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight') next();
+  if(e.key==='ArrowLeft') prev();
+});
+</script>
+
+</body>
+</html>
